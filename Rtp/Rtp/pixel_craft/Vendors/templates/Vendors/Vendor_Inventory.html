@@ -1,0 +1,208 @@
+{% extends 'Vendors_base.html' %}
+{% load static %}
+
+{% block title %}My Inventory | Pixel Craft{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Page Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding-bottom: 1rem;
+    }
+
+    /* Inventory Card */
+    .inventory-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .inventory-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: #00c6ff;
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 198, 255, 0.1);
+    }
+
+    /* Wrap the whole card in an invisible link */
+    .card-link-wrapper {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+
+    /* Component Image Area */
+    .card-img-top-wrapper {
+        height: 200px;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
+    }
+
+    .card-img-top-wrapper img {
+        max-height: 90%;
+        max-width: 90%;
+        object-fit: contain;
+    }
+
+    /* Fallback Icon if no image */
+    .fallback-icon {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Card Body */
+    .card-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .component-category {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #00c6ff;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .component-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+
+    /* Pricing and Stock Grid inside Card */
+    .card-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-price {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .stat-stock {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+
+    /* Dynamic Stock Colors */
+    .stock-high { background: rgba(25, 135, 84, 0.2); color: #20c997; }
+    .stock-low { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+    .stock-out { background: rgba(220, 53, 69, 0.2); color: #ff4d4d; }
+
+    /* Status Dot */
+    .status-dot {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    }
+    .status-active { background: #20c997; box-shadow: 0 0 10px rgba(32, 201, 151, 0.6); }
+    .status-inactive { background: #ff4d4d; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stagger-1">
+    <div class="page-header">
+        <div>
+            <h2 class="fw-bold text-white mb-1"><i class="bi bi-gpu-card me-2"></i>My Inventory</h2>
+            <p class="text-muted mb-0">Manage your component listings, stock levels, and pricing.</p>
+        </div>
+        <a href="{% url 'add_product' %}" class="btn btn-primary" style="background: linear-gradient(45deg, #0d6efd, #00c6ff); border: none; font-weight: 600;">
+            <i class="bi bi-plus-lg me-2"></i>List New Part
+        </a>
+    </div>
+</div>
+
+{% if inventory %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 stagger-2">
+        {% for item in inventory %}
+            <div class="col">
+                <a href="{% url 'edit_inventory_item' item.id %}" class="card-link-wrapper">
+                    <div class="inventory-card">
+                        
+                        {% if item.is_active %}
+                            <div class="status-dot status-active" title="Listing Active"></div>
+                        {% else %}
+                            <div class="status-dot status-inactive" title="Listing Hidden"></div>
+                        {% endif %}
+
+                        <div class="card-img-top-wrapper">
+                            {% if item.component.image %}
+                                <img src="{{ item.component.image.url }}" alt="{{ item.component.name }}">
+                            {% else %}
+                                <i class="bi bi-motherboard fallback-icon"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="component-category">{{ item.component.category }}</div>
+                            <h5 class="component-name">{{ item.component.name }}</h5>
+                            
+                            <div class="card-stats">
+                                <div>
+                                    <div class="text-muted small mb-1">Price</div>
+                                    <div class="stat-price">${{ item.price }}</div>
+                                </div>
+                                
+                                <div>
+                                    {% if item.stock_quantity > 10 %}
+                                        <div class="stat-stock stock-high">{{ item.stock_quantity }} in stock</div>
+                                    {% elif item.stock_quantity > 0 %}
+                                        <div class="stat-stock stock-low">Only {{ item.stock_quantity }} left</div>
+                                    {% else %}
+                                        <div class="stat-stock stock-out">Out of Stock</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5 stagger-2" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 20px;">
+        <i class="bi bi-box-seam text-muted" style="font-size: 4rem;"></i>
+        <h4 class="text-white mt-3 fw-bold">Your inventory is empty</h4>
+        <p class="text-muted">Start listing PC components to get your shop running.</p>
+        <a href="{% url 'add_product' %}" class="btn btn-outline-info mt-2">List Your First Item</a>
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+{% block title %}AI Hardware Architect Node | Pixel Craft{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-main: #060709;
+        --bg-card: #0d1015;
+        --bg-panel: #13171e;
+        --accent-cyan: #00c6ff;
+        --accent-blue: #0072ff;
+        --accent-purple: #7928ca;
+        --text-main: #f1f5f9;
+        --text-muted: #64748b;
+        --border-subtle: rgba(255, 255, 255, 0.04);
+        --neon-glow: 0 0 20px rgba(0, 198, 255, 0.15);
+    }
+
+    body { 
+        background-color: var(--bg-main) !important; 
+        color: var(--text-main);
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    .assistant-matrix-wrapper {
+        height: calc(100vh - 90px);
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 20px;
+        padding-bottom: 15px;
+    }
+
+    .telemetry-sidebar {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .telemetry-header {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.75rem;
+        color: var(--accent-cyan);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 10px;
+        margin-bottom: 5px;
+    }
+
+    .spec-card-mini {
+        background: #090b0f;
+        border-left: 3px solid var(--accent-blue);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 0.8rem;
+    }
+
+    .chat-container-shell {
+        background: radial-gradient(circle at top left, rgba(0, 198, 255, 0.02), transparent 40%), var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: var(--neon-glow);
+        position: relative;
+    }
+
+    .telemetry-banner-bar {
+        background: rgba(19, 23, 30, 0.8);
+        border-bottom: 1px solid var(--border-subtle);
+        backdrop-filter: blur(12px);
+        padding: 15px 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 10;
+    }
+
+    .chat-scroller-lane {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        scroll-behavior: smooth;
+    }
+
+    .chat-scroller-lane::-webkit-scrollbar { width: 6px; }
+    .chat-scroller-lane::-webkit-scrollbar-track { background: transparent; }
+    .chat-scroller-lane::-webkit-scrollbar-thumb { background: #1a2333; border-radius: 10px; }
+    .chat-scroller-lane::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+    .msg-block {
+        display: flex;
+        gap: 15px;
+        max-width: 85%;
+        animation: messageFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .msg-user { margin-left: auto; flex-direction: row-reverse; }
+    .msg-bot { margin-right: auto; }
+
+    @keyframes messageFadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .avatar-icon {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+    }
+    .msg-user .avatar-icon {
+        background: linear-gradient(135deg, #0052cc, var(--accent-blue));
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+    }
+    .msg-bot .avatar-icon {
+        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+        color: #000;
+        box-shadow: 0 4px 12px rgba(0, 198, 255, 0.2);
+    }
+
+    .bubble {
+        padding: 16px 20px;
+        border-radius: 16px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        position: relative;
+    }
+    .msg-user .bubble {
+        background: linear-gradient(135deg, rgba(0, 114, 255, 0.15), rgba(0, 82, 204, 0.05));
+        border: 1px solid rgba(0, 114, 255, 0.25);
+        color: #fff;
+        border-top-right-radius: 4px;
+    }
+    .msg-bot .bubble {
+        background: rgba(19, 23, 30, 0.7);
+        border: 1px solid var(--border-subtle);
+        color: #e2e8f0;
+        border-top-left-radius: 4px;
+    }
+
+    .bubble table {
+        width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.85rem;
+        background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden;
+    }
+    .bubble th, .bubble td { border: 1px solid rgba(255,255,255,0.04); padding: 10px 12px; }
+    .bubble th { background: rgba(0, 198, 255, 0.04); color: var(--accent-cyan); font-weight: 600; }
+    .bubble ul, .bubble ol { padding-left: 20px; margin-bottom: 0; }
+    .bubble li { margin-bottom: 6px; }
+    .bubble h3, .bubble h4 { font-size: 1.1rem; font-weight: 700; color: var(--accent-cyan); margin-top: 15px; margin-bottom: 10px; }
+
+    .input-dock-panel {
+        background: rgba(13, 16, 21, 0.8);
+        border-top: 1px solid var(--border-subtle);
+        backdrop-filter: blur(20px);
+        padding: 20px 30px;
+    }
+
+    .input-wrapper-glow {
+        position: relative;
+        background: #060709;
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 5px 10px 5px 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: 0.3s;
+    }
+
+    .input-wrapper-glow:focus-within {
+        border-color: rgba(0, 198, 255, 0.4);
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.08);
+    }
+
+    .cyber-input {
+        background: transparent !important;
+        border: none !important;
+        color: #fff !important;
+        outline: none !important;
+        box-shadow: none !important;
+        font-size: 0.95rem;
+    }
+
+    .btn-transmit {
+        background: linear-gradient(45deg, var(--accent-cyan), var(--accent-blue));
+        color: #000;
+        border: none;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: 0.3s;
+    }
+    .btn-transmit:hover {
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    @media (max-width: 991px) {
+        .assistant-matrix-wrapper { grid-template-columns: 1fr; }
+        .telemetry-sidebar { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<div class="container-fluid px-4 py-3">
+    <div class="assistant-matrix-wrapper">
+        
+        <aside class="telemetry-sidebar">
+            <div class="telemetry-header">// Matrix Telemetry</div>
+            {% if build_context %}
+                <div>
+                    <span class="text-muted small d-block mb-1">Linked Blueprint Profile</span>
+                    <h6 class="fw-bold text-white mb-0 text-truncate">{{ build_context.name }}</h6>
+                </div>
+                
+                <div class="spec-card-mini mt-2">
+                    <span class="text-muted d-block small mb-1" style="font-size: 0.65rem;">CALCULATED DRAW</span>
+                    <span class="fw-bold text-white fs-6">
+                        {% if build_context.total_estimated_wattage %}
+                            {{ build_context.total_estimated_wattage }} W
+                        {% else %}
+                            0 W
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="spec-card-mini">
+                    <span class="text-muted d-block small mb-1" style="font-size: 0.65rem;">VALUATION ACCUMULATION</span>
+                    <span class="fw-bold text-info fs-6">₹{{ build_context.total_build_price }}</span>
+                </div>
+
+                <div class="mt-2">
+                    <span class="text-muted d-block small mb-2 text-uppercase font-monospace" style="font-size: 0.65rem;">Installed Modules</span>
+                    <div class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">
+                        {% for item in build_context.items.all %}
+                            <div class="p-2 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.02); font-size: 0.75rem;">
+                                <span class="d-block text-info fw-bold" style="font-size: 0.6rem; text-transform: uppercase;">{{ item.inventory_item.component.category }}</span>
+                                <span class="text-white text-truncate d-block">{{ item.inventory_item.component.name }}</span>
+                            </div>
+                        {% empty %}
+                            <span class="text-muted small font-monospace">// Canvas empty</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-4 my-auto text-muted font-monospace" style="font-size: 0.8rem;">
+                    <i class="bi bi-hdd-network display-6 d-block mb-3" style="opacity: 0.2;"></i>
+                    // Standalone Terminal Mode<br><br>Open assistant from within Build Cockpit to pass telemetry profiles.
+                </div>
+            {% endif %}
+        </aside>
+
+        <main class="chat-container-shell">
+            
+            <div class="telemetry-banner-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="spinner-grow spinner-grow-sm text-info" role="status" style="animation-duration: 1.5s;"></div>
+                    <div>
+                        <h6 class="fw-bold text-white m-0" style="font-size: 0.95rem;">Hardware Architect Core Module</h6>
+                        <p class="text-muted small m-0 font-monospace" style="font-size: 0.7rem;">Active Instance: Node_Gemini_2.5_Flash</p>
+                    </div>
+                </div>
+                {% if build_context %}
+                    <a href="{% url 'builder_dashboard' build_context.id %}" class="btn btn-sm btn-outline-secondary px-3 font-monospace text-uppercase fw-bold" style="font-size: 0.7rem; border-radius: 6px; text-decoration: none;">
+                        <i class="bi bi-arrow-left me-1"></i> Exit Terminal
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="chat-scroller-lane" id="chatScroller">
+                <div class="msg-block msg-bot">
+                    <div class="avatar-icon"><i class="bi bi-robot"></i></div>
+                    <div class="bubble shadow-sm" id="initial-welcome-bubble">
+                        {% if ai_initial_analysis %}
+                            <div class="rendering-target-frame"><span class="text-info font-monospace">// Decrypting core hardware telemetry signatures...</span></div>
+                        {% else %}
+                            Hello! I am your <strong>Pixel Craft Hardware Assistant</strong>. Share your target budget, planned workload (like 4K gaming, coding, rendering), or ask any compatibility questions about your setup, and let's get building!
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-dock-panel">
+                <form id="chatForm" class="m-0">
+                    <div class="input-wrapper-glow">
+                        <i class="bi bi-terminal text-muted fs-5"></i>
+                        <input type="text" id="userInput" class="form-control cyber-input py-2" placeholder="Query socket layouts, bottleneck draw ratios, or system build constraints..." autocomplete="off" required>
+                        <button type="submit" class="btn btn-transmit">Transmit</button>
+                    </div>
+                </form>
+            </div>
+
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+{% if ai_initial_analysis %}
+    {{ ai_initial_analysis|json_script:"ai-initial-analysis-data" }}
+{% endif %}
+
+<script>
+    const chatForm = document.getElementById('chatForm');
+    const userInput = document.getElementById('userInput');
+    const chatScroller = document.getElementById('chatScroller');
+    const activeBuildId = "{{ build_context.id|default:'' }}";
+    
+    let conversationHistory = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const dataNode = document.getElementById('ai-initial-analysis-data');
+        const renderingTargetNode = document.querySelector('.rendering-target-frame');
+        
+        if (dataNode && renderingTargetNode) {
+            try {
+                const rawMarkdownText = JSON.parse(dataNode.textContent);
+                if (rawMarkdownText) {
+                    renderingTargetNode.innerHTML = marked.parse(rawMarkdownText);
+                    // Commit greeting cleanly to history track
+                    conversationHistory.push({ role: 'assistant', content: rawMarkdownText });
+                    chatScroller.scrollTop = chatScroller.scrollHeight;
+                }
+            } catch (e) {
+                renderingTargetNode.innerHTML = `<span class="text-danger">[TELEMETRY_PARSE_ERROR]: Secure payload extraction sequence halted.</span>`;
+            }
+        }
+    });
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        userInput.value = '';
+        appendMessageNode(text, 'user');
+        const botBubble = appendMessageNode('', 'bot');
+        
+        const csrfTokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
+        const csrfToken = csrfTokenElement ? csrfTokenElement.value : '';
+        
+        try {
+            const response = await fetch("{% url 'stream_chat_response' %}", {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken 
+                },
+                body: JSON.stringify({
+                    message: text,
+                    history: conversationHistory,
+                    build_id: activeBuildId ? parseInt(activeBuildId) : null
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP System Defect: Matrix Node returned status ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let accumulatedText = '';
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split(/\r?\n/);
+                
+                for (const line of lines) {
+                    const cleanedLine = line.trim();
+                    if (cleanedLine.startsWith('data:')) {
+                        try {
+                            const jsonString = cleanedLine.substring(cleanedLine.indexOf('{'));
+                            const payload = JSON.parse(jsonString);
+                            
+                            if (payload.text) {
+                                accumulatedText += payload.text;
+                                botBubble.innerHTML = marked.parse(accumulatedText);
+                                chatScroller.scrollTop = chatScroller.scrollHeight;
+                            } else if (payload.error) {
+                                botBubble.innerHTML = `<span class="text-danger">[ERROR]: ${payload.error}</span>`;
+                            }
+                        } catch(jsonErr) {
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            conversationHistory.push({ role: 'user', content: text });
+            conversationHistory.push({ role: 'assistant', content: accumulatedText });
+
+        } catch (error) {
+            botBubble.innerHTML = `<span class="text-danger">[CONNECTION_FAILED]: ${error.message}</span>`;
+        }
+    });
+
+    function appendMessageNode(content, sender) {
+        const msgBlock = document.createElement('div');
+        msgBlock.className = `msg-block msg-${sender}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar-icon';
+        avatar.innerHTML = sender === 'user' ? '<i class="bi bi-person-fill"></i>' : '<i class="bi bi-robot"></i>';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble shadow-sm';
+        bubble.innerHTML = sender === 'user' ? content : marked.parse(content);
+        
+        if(sender === 'user') {
+            msgBlock.appendChild(bubble);
+            msgBlock.appendChild(avatar);
+        } else {
+            msgBlock.appendChild(avatar);
+            msgBlock.appendChild(bubble);
+        }
+        
+        chatScroller.appendChild(msgBlock);
+        chatScroller.scrollTop = chatScroller.scrollHeight;
+        return bubble;
+    }
+</script>
+{% endblock %}

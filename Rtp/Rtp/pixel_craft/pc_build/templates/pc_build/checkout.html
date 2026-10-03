@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout | Pixel Craft{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-main: #060709;
+        --bg-card: #0d1015;
+        --accent-cyan: #00c6ff;
+        --border-subtle: rgba(255, 255, 255, 0.05);
+    }
+    body { background-color: var(--bg-main) !important; color: #fff; }
+    
+    .checkout-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+    }
+    
+    .form-control {
+        background-color: #11141a;
+        border: 1px solid var(--border-subtle);
+        color: #fff;
+        padding: 12px 15px;
+    }
+    
+    .form-control:focus {
+        background-color: #11141a;
+        border-color: var(--accent-cyan);
+        color: #fff;
+        box-shadow: 0 0 0 0.25rem rgba(0, 198, 255, 0.25);
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #8892b0;
+    }
+
+    .btn-place-order {
+        background: linear-gradient(45deg, #00c6ff, #0072ff);
+        color: #fff;
+        font-weight: 800;
+        text-transform: uppercase;
+        border: none;
+        transition: 0.3s;
+    }
+    
+    .btn-place-order:hover { 
+        box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4); 
+        color: #fff; 
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="min-height: 100vh;">
+    
+    <a href="{% url 'cart_view' %}" class="text-decoration-none text-muted mb-4 d-inline-flex align-items-center" style="transition: 0.3s; letter-spacing: 1px; font-size: 0.85rem; text-transform: uppercase;">
+        <i class="bi bi-chevron-left me-2 text-info"></i> Back to Cart
+    </a>
+
+    <h2 class="fw-bold mb-4">Secure <span class="text-info">Checkout</span></h2>
+
+    <div class="row g-5">
+        <div class="col-lg-7">
+            <div class="checkout-card p-4 p-md-5">
+                <h4 class="fw-bold mb-4 border-bottom border-dark pb-3">Shipping Details</h4>
+                
+                <form action="{% url 'checkout_view' %}" method="POST" id="checkout-form">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="full_name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" value="{{ request.user.full_name|default:request.user.username }}" required placeholder="John Doe">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="shipping_address" class="form-label">Complete Shipping Address</label>
+                        <textarea class="form-control" id="shipping_address" name="shipping_address" rows="4" required placeholder="123 Gaming Street, Apt 4B, Tech City, 10001">{{ request.user.address }}</textarea>
+                    </div>
+
+                    <div class="alert alert-dark border-secondary text-muted small mt-4">
+                        <i class="bi bi-info-circle-fill text-info me-2"></i> Payment processing is currently set to <strong>Cash on Delivery / Direct Billing</strong> for this phase. Vendors will ship upon order confirmation.
+                    </div>
+
+                    <button type="submit" class="btn btn-place-order w-100 py-3 mt-3 rounded-3 shadow-sm d-flex justify-content-center align-items-center">
+                        Place Order <i class="bi bi-check-circle ms-2"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="checkout-card p-4 sticky-top" style="top: 100px;">
+                <h4 class="fw-bold mb-4 border-bottom border-dark pb-3">Order Summary</h4>
+                
+                <div class="mb-4" style="max-height: 300px; overflow-y: auto;">
+                    {% for item in cart_items %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="pe-3">
+                                <h6 class="mb-0 text-white" style="font-size: 0.95rem;">
+                                    {% if item.inventory_item %}
+                                        {{ item.inventory_item.component.name }}
+                                    {% elif item.custom_build %}
+                                        {{ item.custom_build.name }} (Custom Build)
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                            </div>
+                            <div class="text-end fw-bold text-info" style="min-width: 80px;">
+                                ₹{{ item.item_total }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <hr class="border-secondary">
+                
+                <div class="d-flex justify-content-between mb-4 mt-4">
+                    <span class="h5 fw-bold text-white">Grand Total</span>
+                    <span class="h4 fw-bold text-info">
+                        ₹<span id="grand-total">Calculating...</span>
+                    </span>
+                </div>
+                
+                <p class="text-muted small text-center mb-0">
+                    <i class="bi bi-shield-lock me-1"></i> 256-bit Encrypted SSL Checkout
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let total = 0;
+        const itemTotals = [
+            {% for item in cart_items %}
+                {{ item.item_total }},
+            {% endfor %}
+        ];
+        
+        itemTotals.forEach(function(amount) {
+            total += amount;
+        });
+        
+        document.getElementById('grand-total').innerText = total.toFixed(2);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile | PC Builder{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Glass Cards for Profile */
+    .profile-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        height: 100%;
+    }
+
+    .profile-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 198, 255, 0.1);
+        border-color: rgba(0, 198, 255, 0.3);
+    }
+
+    /* Avatar Glow Effect */
+    .avatar-wrapper {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #0d6efd, #00c6ff);
+        padding: 4px;
+        box-shadow: 0 0 20px rgba(0, 198, 255, 0.4);
+    }
+
+    .avatar-inner {
+        width: 100%;
+        height: 100%;
+        background-color: #0b0b0b;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: #fff;
+    }
+
+    /* Text Styling */
+    .profile-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #8892b0;
+        margin-bottom: 0.2rem;
+    }
+
+    .profile-value {
+        font-size: 1.1rem;
+        color: #fff;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+    }
+
+    .neon-text {
+        color: #00c6ff;
+        font-weight: 700;
+    }
+
+    /* Custom Action Buttons */
+    .btn-glass {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .btn-glass:hover {
+        background: rgba(0, 198, 255, 0.1);
+        border-color: #00c6ff;
+        color: #00c6ff;
+        transform: translateY(-2px);
+    }
+
+    .btn-glass.primary {
+        background: linear-gradient(45deg, #0d6efd, #00c6ff);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .btn-glass.primary:hover {
+        box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4);
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4 stagger-1">
+    <div class="col">
+        <h2 class="fw-bold m-0">Command <span class="neon-text">Center</span></h2>
+        <p class="text-muted mt-1">Manage your builder profile and system specs.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4 stagger-2">
+        <div class="profile-card text-center">
+            <div class="avatar-wrapper">
+                <div class="avatar-inner">
+                    {{ user.username|make_list|first|upper }}
+                </div>
+            </div>
+            
+            <h4 class="fw-bold mb-1">{{ user.username }}</h4>
+            <p class="text-muted mb-4">
+                <i class="bi bi-clock-history me-1"></i> Member since {{ user.date_joined|date:"M Y" }}
+            </p>
+
+            <div class="d-flex flex-column mt-4">
+                <a href="/Accounts/profile/edit/" class="btn-glass primary">
+                    <i class="bi bi-person-gear me-2"></i> Edit Profile
+                </a>
+                <a href="/orders/" class="btn-glass">
+                    <i class="bi bi-box-seam me-2"></i> My Orders
+                </a>
+                {% if user.is_vendor %}
+                <a href="/vendor/dashboard/" class="btn-glass" style="border-color: #ffc107; color: #ffc107;">
+                    <i class="bi bi-shop me-2"></i> Vendor Dashboard
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8 stagger-3">
+        <div class="profile-card">
+            <h5 class="fw-bold mb-4 border-bottom pb-3" style="border-color: rgba(255,255,255,0.1)!important;">
+                <i class="bi bi-shield-lock me-2 neon-text"></i> Personal Information
+            </h5>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="profile-label">Full Name</div>
+                    <div class="profile-value">
+                        {% if user.full_name %}
+                            {{ user.full_name }}
+                        {% else %}
+                            <span class="text-muted fst-italic">Not provided</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="profile-label">Email Address</div>
+                    <div class="profile-value">{{ user.email }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="profile-label">Phone Number</div>
+                    <div class="profile-value">
+                        {% if user.phone_number %}
+                            {{ user.phone_number }}
+                        {% else %}
+                            <span class="text-muted fst-italic">Not provided</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="profile-label">Shipping Address</div>
+                    <div class="profile-value">
+                        {% if user.address %}
+                            {{ user.address }}
+                        {% else %}
+                            <span class="text-muted fst-italic">Not provided</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="fw-bold mb-4 mt-4 border-bottom pb-3" style="border-color: rgba(255,255,255,0.1)!important;">
+                <i class="bi bi-pc-display me-2 neon-text"></i> Active Rigs
+            </h5>
+            <div class="p-3 rounded" style="background: rgba(0, 198, 255, 0.05); border: 1px dashed rgba(0, 198, 255, 0.3);">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle fs-4 me-3 neon-text"></i>
+                    <div>
+                        <p class="mb-0 text-white fw-bold">No saved builds yet!</p>
+                        <p class="mb-0 text-muted small">Head over to the System Builder to craft your ultimate rig.</p>
+                    </div>
+                    <a href="/build/" class="btn btn-sm btn-outline-light ms-auto" style="border-radius: 50px;">Start Building</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

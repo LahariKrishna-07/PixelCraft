@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home | PC Builder{% endblock %}
+
+{% block extra_css %}
+<style>
+
+/* =========================================
+   HERO SECTION
+========================================= */
+.hero {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-top: 40px;
+}
+
+/* Background Ambient Glow */
+.hero::before {
+    content: "";
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0, 198, 255, 0.15), transparent 70%);
+    top: 10%;
+    left: -100px;
+    filter: blur(80px);
+    z-index: -1;
+}
+
+/* TEXT */
+.hero-title {
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: white;
+    line-height: 1.1;
+    letter-spacing: -1px;
+}
+
+.text-gradient {
+    background: linear-gradient(90deg, #fff, #00c6ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+    font-size: 1.25rem;
+    color: #8892b0;
+    margin-top: 25px;
+    max-width: 90%;
+    line-height: 1.6;
+}
+
+/* BUTTONS */
+.btn-primary-cyber {
+    padding: 14px 35px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(45deg, #0d6efd, #00c6ff);
+    color: white;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: 0.3s;
+    box-shadow: 0 10px 20px rgba(0, 198, 255, 0.2);
+    text-decoration: none;
+}
+
+.btn-primary-cyber:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 25px rgba(0, 198, 255, 0.4);
+    color: white;
+}
+
+.btn-secondary-cyber {
+    padding: 12px 35px;
+    border-radius: 50px;
+    border: 1px solid #2a2d34;
+    background: #16191e;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.btn-secondary-cyber:hover {
+    border-color: #00c6ff;
+    color: #00c6ff;
+    background: rgba(0, 198, 255, 0.05);
+}
+
+/* HERO IMAGE */
+.hero-img-wrapper {
+    position: relative;
+    animation: float 6s ease-in-out infinite;
+}
+
+.hero-img {
+    width: 100%;
+    max-width: 550px;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+/* =========================================
+   FEATURES SECTION
+========================================= */
+.section {
+    padding: 100px 0;
+}
+
+.section-title {
+    font-weight: 800;
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 3rem;
+}
+
+.feature-card {
+    background: #16191e;
+    border: 1px solid #2a2d34;
+    padding: 40px 25px;
+    border-radius: 16px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    border-color: #00c6ff;
+    box-shadow: 0 15px 30px rgba(0, 198, 255, 0.1);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: #00c6ff;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+.feature-card h4 {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    color: #8892b0;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* =========================================
+   BOTTOM CTA BANNER
+========================================= */
+.cta-banner {
+    background: linear-gradient(135deg, #16191e, #0b0d10);
+    border: 1px solid #2a2d34;
+    border-radius: 24px;
+    padding: 60px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-banner::after {
+    content: "";
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(0, 198, 255, 0.1), transparent 70%);
+    bottom: -150px;
+    right: -150px;
+}
+
+/* =========================================
+   ANIMATIONS
+========================================= */
+.fade-up {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-up.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Specific staggered delays for features */
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+
+/* Mobile Adjustments */
+@media (max-width: 992px) {
+    .hero-title { font-size: 3rem; }
+    .hero { text-align: center; padding-top: 60px; }
+    .hero-sub { margin: 20px auto; }
+    .hero-buttons { justify-content: center; }
+    .hero-img-wrapper { margin-top: 50px; }
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<section class="hero container">
+    <div class="row align-items-center">
+
+        <div class="col-lg-6 fade-up">
+            <h1 class="hero-title">
+                Build Your Dream PC <br>
+                <span class="text-gradient">Without the Guesswork</span>
+            </h1>
+
+            <p class="hero-sub">
+                Get strict compatibility checks, smart AI recommendations, and the best local prices — all in one powerful dashboard.
+            </p>
+
+            <div class="d-flex gap-3 mt-4 hero-buttons flex-wrap">
+                <a href="/build/" class="btn-primary-cyber">Start Building</a>
+                <a href="/build/" class="btn-secondary-cyber">Browse Parts</a>
+            </div>
+        </div>
+
+        <div class="col-lg-6 text-center fade-up delay-2">
+            <div class="hero-img-wrapper">
+                <img src="https://images.unsplash.com/photo-1587202372634-32705e3bf49c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="hero-img" alt="Custom PC Build">
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<section class="section container">
+    <h2 class="section-title text-center">Why Use Our Platform?</h2>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3 fade-up delay-1">
+            <div class="feature-card">
+                <i class="bi bi-shield-check feature-icon"></i>
+                <h4>Compatibility Check</h4>
+                <p>Advanced filtering ensures you never buy parts that don't fit together.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3 fade-up delay-2">
+            <div class="feature-card">
+                <i class="bi bi-cpu feature-icon"></i>
+                <h4>Smart Suggestions</h4>
+                <p>Our AI analyzes your budget and suggests the optimal components.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3 fade-up delay-3">
+            <div class="feature-card">
+                <i class="bi bi-tag feature-icon"></i>
+                <h4>Best Prices</h4>
+                <p>Compare prices across multiple vendors to save money on your build.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3 fade-up delay-4">
+            <div class="feature-card">
+                <i class="bi bi-geo-alt feature-icon"></i>
+                <h4>Local Sellers</h4>
+                <p>Find components in stock at trusted stores right in your neighborhood.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if not user.is_authenticated %}
+<section class="section container fade-up">
+    <div class="cta-banner">
+        <h2 class="mb-3" style="font-weight: 800; color: #fff;">READY TO UPGRADE?</h2>
+        <p style="color:#8892b0; max-width:600px; margin: 0 auto 30px; font-size: 1.1rem;">
+            Whether you're building your first entry-level gaming rig or a massive workstation, our tools simplify the entire process.
+        </p>
+        <a href="/Accounts/register/" class="btn-primary-cyber">Create Free Account</a>
+    </div>
+</section>
+{% endif%}
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+// Intersection Observer is much better for performance than listening to the scroll event directly!
+document.addEventListener("DOMContentLoaded", function() {
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.15 // Triggers when 15% of the element is visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('show');
+                observer.unobserve(entry.target); // Stop observing once it's shown
+            }
+        });
+    }, observerOptions);
+
+    const fadeElements = document.querySelectorAll('.fade-up');
+    fadeElements.forEach(el => observer.observe(el));
+});
+</script>
+{% endblock %}

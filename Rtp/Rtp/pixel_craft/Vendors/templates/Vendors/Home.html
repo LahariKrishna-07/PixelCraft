@@ -1,0 +1,201 @@
+{% extends 'Vendors_base.html' %}
+{% load static %}
+
+{% block title %}Seller Hub | Pixel Craft{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        padding: 4rem 0;
+        text-align: center;
+        position: relative;
+    }
+
+    .hero-title {
+        font-weight: 900;
+        font-size: 3.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #00c6ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+        letter-spacing: -1px;
+    }
+
+    .hero-subtitle {
+        color: #8892b0;
+        font-size: 1.25rem;
+        max-width: 700px;
+        margin: 0 auto 3rem auto;
+        line-height: 1.8;
+    }
+
+    /* Hub Navigation Cards */
+    .hub-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        height: 100%;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
+        display: block;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hub-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: #00c6ff;
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 198, 255, 0.15);
+    }
+
+    .hub-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, transparent, rgba(0, 198, 255, 0.03), transparent);
+        transform: translateX(-100%);
+        transition: 0.6s;
+    }
+
+    .hub-card:hover::before {
+        transform: translateX(100%);
+    }
+
+    .hub-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        display: inline-block;
+        background: linear-gradient(45deg, #0d6efd, #00c6ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: 0.3s;
+    }
+
+    .hub-card:hover .hub-icon {
+        transform: scale(1.1);
+    }
+
+    .hub-title {
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .hub-desc {
+        color: #8892b0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+
+    /* Platform Features */
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .feature-list li {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        color: #ccc;
+    }
+
+    .feature-list i {
+        color: #00c6ff;
+        font-size: 1.2rem;
+        margin-right: 15px;
+        background: rgba(0, 198, 255, 0.1);
+        padding: 8px;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section stagger-1">
+    <h1 class="hero-title">Empower Your Hardware Business</h1>
+    <p class="hero-subtitle">
+        Pixel Craft is the ultimate destination for PC enthusiasts. As a verified seller, you are directly connected to thousands of builders looking for high-quality components, verified compatibility, and premium service.
+    </p>
+</div>
+
+<div class="row g-4 mb-5 pb-4">
+    <div class="col-lg-3 col-md-6 stagger-2">
+        <a href="{% url 'vendor_dashboard' %}" class="hub-card">
+            <i class="bi bi-speedometer2 hub-icon"></i>
+            <h3 class="hub-title">Command Dashboard</h3>
+            <p class="hub-desc">Get a bird's-eye view of your store. Track your monthly revenue, view active orders, and monitor your overall seller metrics.</p>
+        </a>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 stagger-3">
+        <a href="{% url 'vendor_inventory' %}" class="hub-card">
+            <i class="bi bi-gpu-card hub-icon"></i>
+            <h3 class="hub-title">Manage Inventory</h3>
+            <p class="hub-desc">Add new components to the marketplace, update pricing, restock items, and manage your product listings in real-time.</p>
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 stagger-4">
+        <a href="{% url 'vendor_orders' %}" class="hub-card">
+            <i class="bi bi-box-seam hub-icon"></i>
+            <h3 class="hub-title">Fulfill Orders</h3>
+            <p class="hub-desc">Process incoming customer orders, print shipping labels, and update tracking statuses to keep your buyers informed.</p>
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 stagger-5">
+        <a href="{% url 'vendor_settings' %}" class="hub-card">
+            <i class="bi bi-shop-window hub-icon"></i>
+            <h3 class="hub-title">Shop Settings</h3>
+            <p class="hub-desc">Customize your storefront profile, manage your payout methods, and configure your return and shipping policies.</p>
+        </a>
+    </div>
+</div>
+
+<div class="row align-items-center mb-5 stagger-6">
+    <div class="col-lg-6 mb-4 mb-lg-0">
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 3rem; height: 100%;">
+            <h3 class="fw-bold text-white mb-4">Why Sell on Pixel Craft?</h3>
+            <ul class="feature-list">
+                <li>
+                    <i class="bi bi-check2-circle"></i>
+                    <span><strong>Targeted Audience:</strong> Direct access to PC builders and hardware enthusiasts. No generic traffic, just highly motivated buyers.</span>
+                </li>
+                <li>
+                    <i class="bi bi-shield-check"></i>
+                    <span><strong>AI Compatibility Engine:</strong> When you list a part, our system automatically verifies its compatibility with user builds, reducing return rates.</span>
+                </li>
+                <li>
+                    <i class="bi bi-wallet2"></i>
+                    <span><strong>Fast Payouts:</strong> Secure, automated payouts directly to your linked bank account or crypto wallet upon order fulfillment.</span>
+                </li>
+                <li>
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span><strong>Analytics & Insights:</strong> See exactly which components are trending in the marketplace so you can stock up efficiently.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div style="background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(0, 198, 255, 0.05)); border: 1px solid rgba(0, 198, 255, 0.2); border-radius: 20px; padding: 3rem; height: 100%; display: flex; flex-direction: column; justify-content: center; text-align: center;">
+            <i class="bi bi-headset" style="font-size: 3rem; color: #00c6ff; margin-bottom: 1rem;"></i>
+            <h3 class="fw-bold text-white mb-3">Vendor Support Team</h3>
+            <p class="text-muted mb-4">Need help setting up your API integration or have a question about a disputed order? Our dedicated vendor success team is available 24/7.</p>
+            <div>
+                <a href="#" class="btn btn-outline-light me-2 px-4 py-2" style="border-radius: 8px;">View Docs</a>
+                <a href="#" class="btn btn-primary px-4 py-2" style="background: linear-gradient(45deg, #0d6efd, #00c6ff); border: none; border-radius: 8px;">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

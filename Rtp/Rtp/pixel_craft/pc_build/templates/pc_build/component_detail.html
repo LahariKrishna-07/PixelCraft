@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ component.name }} | PC Builder{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Dark Theme Variables */
+    :root {
+        --bg-main: #060709;
+        --bg-card: #0d1015;
+        --bg-panel: #13171e;
+        --accent-cyan: #00c6ff;
+        --accent-blue: #0072ff;
+        --text-main: #ffffff;
+        --text-muted: #8892b0;
+        --border-subtle: rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+        background-color: var(--bg-main) !important;
+        color: var(--text-main);
+    }
+
+    /* Page Animations */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-up {
+        opacity: 0;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Image Showcase Area */
+    .product-showcase {
+        height: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at center, rgba(0, 198, 255, 0.1) 0%, rgba(0,0,0,0.5) 70%);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .product-showcase img {
+        max-height: 85%;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        transition: transform 0.5s ease;
+    }
+
+    .product-showcase:hover img {
+        transform: scale(1.05);
+    }
+
+    /* High-Tech Badges */
+    .tech-badge {
+        background: rgba(0, 198, 255, 0.1);
+        color: var(--accent-cyan);
+        border: 1px solid rgba(0, 198, 255, 0.2);
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+
+    /* Terminal Specs Box */
+    .specs-terminal {
+        background: #090b0f;
+        border: 1px solid var(--border-subtle);
+        border-left: 3px solid var(--accent-cyan);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: 'Courier New', Courier, monospace;
+        color: #a8b2d1;
+        font-size: 0.85rem;
+        line-height: 1.8;
+    }
+
+    .terminal-line {
+        margin-bottom: 6px;
+        display: flex;
+    }
+
+    .terminal-label {
+        color: #00c6ff;
+        font-weight: bold;
+        min-width: 150px;
+        display: inline-block;
+    }
+
+    .terminal-value {
+        color: #fff;
+    }
+
+    /* Vendor Card Styling */
+    .vendor-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .vendor-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        background: var(--accent-cyan);
+        opacity: 0.5;
+        transition: 0.3s;
+    }
+
+    .vendor-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(0, 198, 255, 0.3);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 198, 255, 0.1);
+    }
+
+    .vendor-card:hover::before {
+        opacity: 1;
+        box-shadow: 0 0 15px var(--accent-cyan);
+    }
+
+    /* Stock Badge */
+    .stock-badge {
+        background: rgba(25, 135, 84, 0.1);
+        color: #20c997;
+        border: 1px solid rgba(32, 201, 151, 0.2);
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Buttons */
+    .btn-gradient {
+        background: linear-gradient(45deg, var(--accent-cyan), var(--accent-blue));
+        color: #fff;
+        border: none;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: 0.3s;
+    }
+
+    .btn-gradient:hover {
+        box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-glow {
+        border: 1px solid var(--accent-cyan);
+        color: var(--accent-cyan);
+        background: transparent;
+        transition: 0.3s;
+    }
+
+    .btn-outline-glow:hover {
+        background: var(--accent-cyan);
+        color: #000;
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+    }
+
+    .price-tag {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #fff;
+    }
+    .price-currency {
+        color: var(--accent-cyan);
+        font-size: 1.2rem;
+        margin-right: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="min-height: 100vh;">
+    
+    {% if messages %}
+        <div class="animate-up mb-4" style="animation-delay: 0s;">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-secondary" style="background: var(--bg-panel); color: var(--text-main);" role="alert">
+                    <i class="bi bi-info-circle-fill text-info me-2"></i>{{ message }}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <a href="{% url 'components_list' %}" class="text-decoration-none text-muted mb-4 d-inline-flex align-items-center animate-up" style="transition: 0.3s; letter-spacing: 1px; font-size: 0.85rem; text-transform: uppercase;">
+        <i class="bi bi-chevron-left me-2 text-info"></i> Return to Hardware Catalog
+    </a>
+
+    <div class="row g-5">
+        <div class="col-lg-5 animate-up" style="animation-delay: 0.1s;">
+            <div class="p-4 rounded-4 sticky-top" style="background: var(--bg-panel); border: 1px solid var(--border-subtle); top: 100px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+                
+                <div class="product-showcase mb-4">
+                    {% if component.image %}
+                        <img src="{{ component.image.url }}" alt="{{ component.name }}">
+                    {% else %}
+                        <img src="{% static 'placeholder.png' %}" alt="Placeholder" style="opacity: 0.3;">
+                    {% endif %}
+                </div>
+                
+                <h2 class="fw-bold text-white mb-2" style="font-size: 2rem;">{{ component.name }}</h2>
+                
+                <div class="d-flex gap-2 mb-4">
+                    <span class="tech-badge"><i class="bi bi-tag-fill me-1"></i>{{ component.brand|default:"Generic" }}</span>
+                    <span class="tech-badge"><i class="bi bi-cpu-fill me-1"></i>{{ component.category }}</span>
+                </div>
+                
+                <p class="text-muted" style="line-height: 1.6; font-size: 0.95rem;">{{ component.description }}</p>
+                
+                <h6 class="text-white mt-5 mb-3 fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.8rem;">
+                    <i class="bi bi-sliders text-info me-2"></i>System Architecture Profile
+                </h6>
+                
+                <!-- DYNAMIC SYSTEM PROFILE TERMINAL -->
+                <div class="specs-terminal">
+                    {% if component.category == 'CPU' and component.cpu_spec %}
+                        <div class="terminal-line"><span class="terminal-label">> SOCKET:</span><span class="terminal-value">{{ component.cpu_spec.socket.name }}</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> ARCH_TDP:</span><span class="terminal-value">{{ component.cpu_spec.tdp_watts }} Watts</span></div>
+                        <div class="terminal-line">
+                            <span class="terminal-label">> MEM_COMPAT:</span>
+                            <span class="terminal-value">
+                                {% for gen in component.cpu_spec.supported_memory.all %}{{ gen.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            </span>
+                        </div>
+                    
+                    {% elif component.category == 'GPU' and component.gpu_spec %}
+                        <div class="terminal-line"><span class="terminal-label">> VRAM_POOL:</span><span class="terminal-value">{{ component.gpu_spec.vram_gb }} GB</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> FORM_LENGTH:</span><span class="terminal-value">{{ component.gpu_spec.length_mm }} mm</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> DRAW_TDP:</span><span class="terminal-value">{{ component.gpu_spec.tdp_watts }} Watts</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> REQ_POWER:</span><span class="terminal-value">{{ component.gpu_spec.recommended_psu_wattage }} Watts minimum</span></div>
+                    
+                    {% elif component.category == 'Motherboard' and component.motherboard_spec %}
+                        <div class="terminal-line"><span class="terminal-label">> FORM_FACTOR:</span><span class="terminal-value">{{ component.motherboard_spec.form_factor }}</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> BUS_SOCKET:</span><span class="terminal-value">{{ component.motherboard_spec.socket.name }}</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> RAM_SLOTS:</span><span class="terminal-value">{{ component.motherboard_spec.memory_generation.name }} standard</span></div>
+                    
+                    {% elif component.category == 'RAM' and component.ram_spec %}
+                        <div class="terminal-line"><span class="terminal-label">> INTERFACE:</span><span class="terminal-value">{{ component.ram_spec.generation.name }}</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> FREQUENCY:</span><span class="terminal-value">{{ component.ram_spec.speed_mhz }} MHz</span></div>
+                    
+                    {% elif component.category == 'PSU' and component.psu_spec %}
+                        <div class="terminal-line"><span class="terminal-label">> CAPACITY:</span><span class="terminal-value">{{ component.psu_spec.wattage }} Watts</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> EFFICIENCY:</span><span class="terminal-value">{{ component.psu_spec.efficiency }}</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> TOPOLOGY:</span><span class="terminal-value">{% if component.psu_spec.is_modular %}Full Modular{% else %}Fixed Cables{% endif %}</span></div>
+                    
+                    {% elif component.category == 'Case' and component.case_spec %}
+                        <div class="terminal-line"><span class="terminal-label">> MAX_MOBO:</span><span class="terminal-value">{{ component.case_spec.max_form_factor }}</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> MAX_GPU_LEN:</span><span class="terminal-value">{{ component.case_spec.max_gpu_length_mm }} mm</span></div>
+                    
+                    {% elif component.category == 'Storage' and component.storage_spec %}
+                        <div class="terminal-line"><span class="terminal-label">> BUS_TYPE:</span><span class="terminal-value">{{ component.storage_spec.get_drive_type_display }}</span></div>
+                        <div class="terminal-line"><span class="terminal-label">> CAPACITY:</span><span class="terminal-value">{{ component.storage_spec.capacity_gb }} GB</span></div>
+                    
+                    {% elif component.category == 'Cooling' and component.cooler_spec %}
+                        <div class="terminal-line"><span class="terminal-label">> TYPE:</span><span class="terminal-value">{% if component.cooler_spec.is_liquid_cooler %}Liquid (AIO){% else %}Air Tower{% endif %}</span></div>
+                        {% if component.cooler_spec.radiator_size_mm %}
+                            <div class="terminal-line"><span class="terminal-label">> RAD_SIZE:</span><span class="terminal-value">{{ component.cooler_spec.radiator_size_mm }} mm</span></div>
+                        {% endif %}
+                        <div class="terminal-line">
+                            <span class="terminal-label">> ANCHORS:</span>
+                            <span class="terminal-value">
+                                {% for socket in component.cooler_spec.supported_sockets.all %}{{ socket.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            </span>
+                        </div>
+                    {% else %}
+                        <div class="terminal-line"><span class="terminal-label">> STATUS:</span><span class="terminal-value">Standard Catalog Accessory</span></div>
+                        <div class="terminal-line text-muted" style="font-size: 0.75rem;">No architecture inter-dependencies required.</div>
+                    {% endif %}
+                </div>
+                <!-- END PROFILE TERMINAL -->
+
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="animate-up" style="animation-delay: 0.2s;">
+                <h4 class="fw-bold text-white mb-1">Marketplace <span class="text-info">Offers</span></h4>
+                <p class="text-muted mb-4 small">Select a verified vendor to add this component to your build.</p>
+            </div>
+            
+            {% if vendor_offers %}
+                {% for offer in vendor_offers %}
+                <div class="vendor-card mb-3 p-2 animate-up" style="animation-delay: 0.{{ forloop.counter|add:2 }}s;">
+                    <div class="card-body d-flex flex-wrap justify-content-between align-items-center p-3">
+                        
+                        <div class="mb-3 mb-md-0 col-12 col-md-5">
+                            <h5 class="mb-1 fw-bold text-white d-flex align-items-center">
+                                {{ offer.vendor.shop_name }}
+                                <i class="bi bi-patch-check-fill text-info ms-2" style="font-size: 0.9rem;" title="Verified Vendor"></i>
+                            </h5>
+                            <div class="mt-2">
+                                <span class="stock-badge">
+                                    <span class="spinner-grow spinner-grow-sm text-success me-2" style="width: 8px; height: 8px;" role="status"></span>
+                                    {{ offer.stock_quantity }} Units Ready
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-md-center col-6 col-md-3">
+                            <div class="price-tag"><span class="price-currency">₹</span>{{ offer.price }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">Includes GST</div>
+                        </div>
+
+                        <div class="col-12 col-md-4 mt-3 mt-md-0">
+                            <form action="{% url 'add_to_cart' offer.id %}" method="POST" class="m-0 d-flex gap-2 justify-content-end w-100">
+                                {% csrf_token %}
+                                
+                                <button type="submit" class="btn btn-outline-glow rounded-3 px-3 py-2" title="Add to Cart">
+                                    <i class="bi bi-cart-plus-fill fs-5"></i>
+                                </button>
+
+                                <button type="submit" class="btn btn-gradient rounded-3 px-4 py-2 d-flex align-items-center justify-content-center flex-grow-1">
+                                    Buy Now
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5 rounded-4 animate-up" style="animation-delay: 0.3s; background: var(--bg-panel); border: 1px dashed #333;">
+                    <i class="bi bi-radar display-4 text-muted mb-3" style="opacity: 0.5;"></i>
+                    <h5 class="text-white">Awaiting Supply Drop</h5>
+                    <p class="text-muted small px-4">No vendors currently have this component in stock. Check back later or explore alternative hardware.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

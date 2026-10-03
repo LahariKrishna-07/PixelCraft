@@ -1,0 +1,397 @@
+{% extends 'Vendors_base.html' %}
+
+{% block title %}Add Product | Vendor Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-panel: #161b22;
+        --input-bg: #0d1117;
+        --border-color: #30363d;
+        --accent-cyan: #00c6ff;
+    }
+
+    body { color: #c9d1d9; }
+    
+    .admin-card { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; }
+    .form-control, .form-select { background-color: var(--input-bg); border: 1px solid var(--border-color); color: #c9d1d9; font-size: 0.9rem; padding: 8px 12px; border-radius: 6px; }
+    .form-control:focus, .form-select:focus { background-color: var(--input-bg); border-color: var(--accent-cyan); color: #fff; box-shadow: 0 0 0 1px var(--accent-cyan); }
+    .form-label { font-size: 0.85rem; font-weight: 600; color: #8b949e; margin-bottom: 6px; }
+    .autocomplete-wrapper { position: relative; }
+    .autocomplete-list { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.5); padding: 0; margin: 0; list-style: none; }
+    .autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; align-items: center; }
+    .autocomplete-item:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+    .item-new { color: var(--accent-cyan); font-weight: 600; background: rgba(0, 198, 255, 0.05); }
+    #selected-chip { display: none; background-color: rgba(46, 160, 67, 0.1); border: 1px solid rgba(46, 160, 67, 0.4); color: #3fb950; padding: 10px 15px; border-radius: 6px; align-items: center; justify-content: space-between; font-size: 0.9rem; }
+    #new-component-fields { display: none; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px; }
+    .spec-group { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 700px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-white mb-0">Add to Inventory</h4>
+        <a href="{% url 'vendor_inventory' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+    </div>
+
+    <div class="admin-card p-4">
+        <form method="POST" action="{% url 'add_product' %}" enctype="multipart/form-data" id="productForm">
+            {% csrf_token %}
+            
+            <input type="hidden" name="component_mode" id="component_mode" value="">
+            <input type="hidden" name="component_id" id="component_id" value="">
+
+            <div class="mb-4 border-bottom border-secondary pb-4">
+                <label class="form-label text-white">1. Select or Create Master Component</label>
+                
+                <div class="autocomplete-wrapper" id="search-wrapper">
+                    <input type="text" id="searchBox" class="form-control" placeholder="Search components..." autocomplete="off">
+                    
+                    <ul class="autocomplete-list" id="autoList">
+                        <li class="autocomplete-item item-new" data-action="new">
+                            <i class="bi bi-plus-circle me-2"></i> Create New Component
+                        </li>
+                        {% for comp in all_components %}
+                            <li class="autocomplete-item db-item" data-id="{{ comp.id }}" data-name="{{ comp.name }}">
+                                <span class="badge bg-secondary me-2" style="font-size: 0.7rem;">{{ comp.category }}</span> 
+                                {{ comp.name }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div id="selected-chip" class="mt-2">
+                    <span><i class="bi bi-check-circle-fill me-2"></i><strong id="selected-chip-text"></strong></span>
+                    <button type="button" class="btn btn-sm btn-outline-success border-0 py-0" onclick="resetSearch()">Change</button>
+                </div>
+            </div>
+
+            <div id="new-component-fields" class="p-3 mb-4">
+                <h6 class="text-info mb-3 border-bottom border-secondary pb-2">New Component Details</h6>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="new_name" class="form-control new-req" placeholder="Component Name">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Category <span class="text-danger">*</span></label>
+                        <select name="new_category" id="categorySelect" class="form-select new-req">
+                            <option value="" disabled selected>Select...</option>
+                            <option value="CPU">CPU</option>
+                            <option value="GPU">GPU</option>
+                            <option value="Motherboard">Motherboard</option>
+                            <option value="RAM">RAM</option>
+                            <option value="Storage">Storage</option>
+                            <option value="PSU">PSU</option>
+                            <option value="Case">Case</option>
+                            <option value="Cooling">Cooling</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Brand</label>
+                        <input type="text" name="new_brand" class="form-control" placeholder="Brand Name">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Image</label>
+                        <input type="file" name="new_image" class="form-control" accept="image/*">
+                    </div>
+                    
+                    <!-- DYNAMIC SPECS CONTAINER -->
+                    <div id="dynamic-specs" class="col-12 mt-3 p-3 border border-secondary rounded" style="display: none; background: rgba(0,0,0,0.2);">
+                        <h6 class="text-info mb-3">Technical Specifications <span class="text-muted" style="font-size: 0.8rem;">(Required for Compatibility)</span></h6>
+                        
+                        <!-- CPU Fields -->
+                        <div id="spec-cpu" class="row g-3 spec-group">
+                            <div class="col-md-4">
+                                <label class="form-label">CPU Socket <span class="text-danger">*</span></label>
+                                <input type="text" name="new_socket" class="form-control" placeholder="e.g., AM5">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">TDP (Watts) <span class="text-danger">*</span></label>
+                                <input type="number" name="new_cpu_tdp" class="form-control" placeholder="e.g., 65, 105">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Memory <span class="text-danger">*</span></label>
+                                <select multiple name="new_memory_gens" class="form-select" style="height: 70px;">
+                                    <option value="DDR4">DDR4</option>
+                                    <option value="DDR5">DDR5</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Motherboard Fields -->
+                        <div id="spec-mobo" class="row g-3 spec-group">
+                            <div class="col-md-4">
+                                <label class="form-label">Socket <span class="text-danger">*</span></label>
+                                <input type="text" name="new_socket" class="form-control" placeholder="e.g., AM5">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Form Factor <span class="text-danger">*</span></label>
+                                <select name="new_form_factor" class="form-select">
+                                    <option value="" disabled selected>Select...</option>
+                                    <option value="ATX">Standard ATX</option>
+                                    <option value="mATX">Micro-ATX</option>
+                                    <option value="ITX">Mini-ITX</option>
+                                    <option value="E-ATX">Extended ATX</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Memory Gen <span class="text-danger">*</span></label>
+                                <select name="new_memory_gen" class="form-select">
+                                    <option value="" disabled selected>Select...</option>
+                                    <option value="DDR4">DDR4</option>
+                                    <option value="DDR5">DDR5</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- RAM Fields -->
+                        <div id="spec-ram" class="row g-3 spec-group">
+                            <div class="col-md-6">
+                                <label class="form-label">Memory Generation <span class="text-danger">*</span></label>
+                                <select name="new_memory_gen" class="form-select">
+                                    <option value="" disabled selected>Select...</option>
+                                    <option value="DDR4">DDR4</option>
+                                    <option value="DDR5">DDR5</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Speed (MHz) <span class="text-danger">*</span></label>
+                                <input type="number" name="new_ram_speed" class="form-control" placeholder="e.g., 6000">
+                            </div>
+                        </div>
+
+                        <!-- PSU Fields -->
+                        <div id="spec-psu" class="row g-3 spec-group">
+                            <div class="col-md-4">
+                                <label class="form-label">Wattage (W) <span class="text-danger">*</span></label>
+                                <input type="number" name="new_psu_wattage" class="form-control" placeholder="e.g., 850">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Efficiency <span class="text-danger">*</span></label>
+                                <input type="text" name="new_psu_efficiency" class="form-control" placeholder="e.g., 80+ Gold">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Modular? <span class="text-danger">*</span></label>
+                                <select name="new_psu_modular" class="form-select">
+                                    <option value="True">Yes</option>
+                                    <option value="False">No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Cooler Fields -->
+                        <div id="spec-cooler" class="row g-3 spec-group">
+                            <div class="col-md-5">
+                                <label class="form-label">Sockets <span class="text-danger">*</span></label>
+                                <input type="text" name="new_cooler_sockets" class="form-control" placeholder="e.g., AM5, LGA 1700">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Type <span class="text-danger">*</span></label>
+                                <select name="new_cooler_liquid" class="form-select">
+                                    <option value="False">Air Cooler</option>
+                                    <option value="True">Liquid (AIO)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Rad (mm)</label>
+                                <input type="number" name="new_cooler_rad_size" class="form-control" placeholder="e.g., 240">
+                            </div>
+                        </div>
+
+                        <!-- Case Fields -->
+                        <div id="spec-case" class="row g-3 spec-group">
+                            <div class="col-md-6">
+                                <label class="form-label">Max Mobo Size <span class="text-danger">*</span></label>
+                                <select name="new_case_form_factor" class="form-select">
+                                    <option value="" disabled selected>Select max size...</option>
+                                    <option value="E-ATX">E-ATX</option>
+                                    <option value="ATX">Standard ATX</option>
+                                    <option value="mATX">Micro-ATX</option>
+                                    <option value="ITX">Mini-ITX</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Max GPU Length (mm) <span class="text-danger">*</span></label>
+                                <input type="number" name="new_case_gpu_len" class="form-control" placeholder="e.g., 380">
+                            </div>
+                        </div>
+
+                        <!-- GPU Fields -->
+                        <div id="spec-gpu" class="row g-3 spec-group">
+                            <div class="col-md-3">
+                                <label class="form-label">Len (mm) <span class="text-danger">*</span></label>
+                                <input type="number" name="new_gpu_len" class="form-control" placeholder="e.g., 342">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Rec PSU <span class="text-danger">*</span></label>
+                                <input type="number" name="new_gpu_psu" class="form-control" placeholder="e.g., 750">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">VRAM <span class="text-danger">*</span></label>
+                                <input type="number" name="new_gpu_vram" class="form-control" placeholder="e.g., 16">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">TDP (W) <span class="text-danger">*</span></label>
+                                <input type="number" name="new_gpu_tdp" class="form-control" placeholder="e.g., 320">
+                            </div>
+                        </div>
+
+                        <!-- Storage Fields -->
+                        <div id="spec-storage" class="row g-3 spec-group">
+                            <div class="col-md-6">
+                                <label class="form-label">Drive Type <span class="text-danger">*</span></label>
+                                <select name="new_storage_type" class="form-select">
+                                    <option value="" disabled selected>Select...</option>
+                                    <option value="NVMe">NVMe M.2</option>
+                                    <option value="SATA_SSD">SATA 2.5" SSD</option>
+                                    <option value="HDD">SATA 3.5" HDD</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Capacity (GB) <span class="text-danger">*</span></label>
+                                <input type="number" name="new_storage_cap" class="form-control" placeholder="e.g., 1000">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END DYNAMIC SPECS -->
+
+                    <div class="col-12 mt-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="new_description" class="form-control" rows="2" placeholder="Brief description..."></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">General Features / Info</label>
+                        <textarea name="new_specs" class="form-control" rows="2" placeholder="Other specifications..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-white">2. Your Selling Details</label>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Price (₹) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" name="price" class="form-control fw-bold text-white" required placeholder="0.00">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Stock Quantity <span class="text-danger">*</span></label>
+                        <input type="number" name="stock_quantity" class="form-control fw-bold text-white" required placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end pt-3 border-top border-secondary">
+                <button type="submit" class="btn btn-info px-4 fw-bold text-dark" id="submitBtn" disabled>Save to Inventory</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const searchBox = document.getElementById('searchBox');
+    const searchWrapper = document.getElementById('search-wrapper');
+    const autoList = document.getElementById('autoList');
+    const items = document.querySelectorAll('.db-item');
+    const newComponentFields = document.getElementById('new-component-fields');
+    const selectedChip = document.getElementById('selected-chip');
+    const selectedChipText = document.getElementById('selected-chip-text');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    const modeInput = document.getElementById('component_mode');
+    const idInput = document.getElementById('component_id');
+    const newRequiredFields = document.querySelectorAll('.new-req');
+
+    const categorySelect = document.getElementById('categorySelect');
+    const dynamicSpecsBox = document.getElementById('dynamic-specs');
+    
+    const specGroups = {
+        'CPU': document.getElementById('spec-cpu'),
+        'Motherboard': document.getElementById('spec-mobo'),
+        'RAM': document.getElementById('spec-ram'),
+        'PSU': document.getElementById('spec-psu'),
+        'Cooling': document.getElementById('spec-cooler'),
+        'Case': document.getElementById('spec-case'),
+        'GPU': document.getElementById('spec-gpu'),
+        'Storage': document.getElementById('spec-storage')
+    };
+
+    searchBox.addEventListener('keyup', function() {
+        let filter = searchBox.value.toLowerCase();
+        autoList.style.display = 'block';
+        items.forEach(item => {
+            let text = item.innerText.toLowerCase();
+            item.style.display = text.includes(filter) ? 'flex' : 'none';
+        });
+    });
+
+    searchBox.addEventListener('focus', () => { autoList.style.display = 'block'; });
+    document.addEventListener('click', function(e) { if (!e.target.closest('.autocomplete-wrapper')) autoList.style.display = 'none'; });
+
+    autoList.addEventListener('click', function(e) {
+        let li = e.target.closest('.autocomplete-item');
+        if (!li) return;
+        autoList.style.display = 'none'; 
+        submitBtn.disabled = false; 
+
+        if (li.dataset.action === 'new') {
+            modeInput.value = "new";
+            idInput.value = "";
+            searchWrapper.style.display = "none";
+            selectedChip.style.display = "none";
+            newComponentFields.style.display = "block";
+            newRequiredFields.forEach(field => field.required = true);
+        } else {
+            modeInput.value = "existing";
+            idInput.value = li.dataset.id;
+            searchWrapper.style.display = "none";
+            selectedChipText.innerText = li.dataset.name;
+            selectedChip.style.display = "flex";
+            newComponentFields.style.display = "none";
+            newRequiredFields.forEach(field => field.required = false);
+        }
+    });
+
+    function resetSearch() {
+        searchBox.value = "";
+        searchWrapper.style.display = "block";
+        selectedChip.style.display = "none";
+        newComponentFields.style.display = "none";
+        submitBtn.disabled = true;
+        modeInput.value = "";
+        idInput.value = "";
+        searchBox.focus();
+        categorySelect.value = "";
+        handleCategoryChange();
+    }
+
+    function handleCategoryChange() {
+        const cat = categorySelect.value;
+        Object.values(specGroups).forEach(group => {
+            if (group) {
+                group.style.display = 'none';
+                group.querySelectorAll('input, select').forEach(input => {
+                    input.disabled = true;
+                    input.required = false;
+                });
+            }
+        });
+        
+        dynamicSpecsBox.style.display = 'none';
+
+        if (cat && specGroups[cat]) {
+            dynamicSpecsBox.style.display = 'block';
+            specGroups[cat].style.display = 'flex';
+            specGroups[cat].querySelectorAll('input, select').forEach(input => {
+                input.disabled = false;
+                if (input.name !== 'new_cooler_rad_size') input.required = true;
+            });
+        }
+    }
+
+    categorySelect.addEventListener('change', handleCategoryChange);
+    handleCategoryChange();
+</script>
+{% endblock %}

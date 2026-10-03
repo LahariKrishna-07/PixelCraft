@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Select {{ category }} | Pixel Craft Blueprint Engine{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-main: #060709;
+        --bg-card: #0d1015;
+        --bg-panel: #13171e;
+        --accent-cyan: #00c6ff;
+        --accent-blue: #0072ff;
+        --text-main: #ffffff;
+        --text-muted: #8892b0;
+        --border-subtle: rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+        background-color: var(--bg-main) !important;
+        color: var(--text-main);
+    }
+
+    /* Top Navigation Breaker */
+    .breadcrumb-link {
+        transition: 0.3s;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-decoration: none;
+    }
+    .breadcrumb-link:hover {
+        color: var(--accent-cyan);
+    }
+
+    /* Grid Layout Container */
+    .catalog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+        padding: 20px 0;
+    }
+
+    /* Cyber Component Card */
+    .cyber-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+    }
+
+    .cyber-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .cyber-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(0, 198, 255, 0.25);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 198, 255, 0.05);
+    }
+
+    .cyber-card:hover::before {
+        opacity: 1;
+    }
+
+    /* Product Showcase Wrapper */
+    .card-showcase {
+        height: 200px;
+        background: radial-gradient(circle at center, rgba(0, 198, 255, 0.05) 0%, rgba(0,0,0,0.3) 80%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .card-showcase img {
+        max-height: 90%;
+        max-width: 90%;
+        object-fit: contain;
+        filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+        transition: transform 0.4s ease;
+    }
+
+    .cyber-card:hover .card-showcase img {
+        transform: scale(1.06);
+    }
+
+    /* Technical Inner Details Matrix */
+    .card-body-panel {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .brand-trace {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--accent-cyan);
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+    }
+
+    .component-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.4;
+        margin-bottom: 12px;
+        height: 50px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    /* Miniature Embedded Data Terminal Grid */
+    .mini-specs-grid {
+        background: #090b0f;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 10px 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 20px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.75rem;
+    }
+
+    .spec-line {
+        color: #a8b2d1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .spec-line span {
+        color: #00c6ff;
+        font-weight: bold;
+    }
+
+    /* Price and Mounting Buttons Footer */
+    .card-footer-panel {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        pt-3;
+        border-top: 1px solid var(--border-subtle);
+        padding-top: 15px;
+    }
+
+    .price-matrix {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .price-matrix sm {
+        font-size: 0.9rem;
+        color: var(--accent-cyan);
+        margin-right: 1px;
+    }
+
+    .btn-mount {
+        background: linear-gradient(45deg, var(--accent-cyan), var(--accent-blue));
+        color: #000;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: 0.3s;
+        text-decoration: none;
+    }
+
+    .btn-mount:hover {
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+        transform: translateY(-2px);
+        color: #000;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <!-- Top Configuration Header Routing Info -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 border-bottom border-secondary pb-4">
+        <div>
+            <a href="{% url 'builder_dashboard' build_id %}" class="breadcrumb-link mb-2 d-inline-block">
+                <i class="bi bi-chevron-left text-info"></i> Back to Blueprint Cockpit
+            </a>
+            <h2 class="fw-bold text-white m-0">Select <span class="text-info">{{ category }}</span> Engine Layout</h2>
+        </div>
+        <div class="text-md-end mt-3 mt-md-0">
+            <span class="badge bg-dark border border-secondary text-muted px-3 py-2 uppercase fw-bold" style="letter-spacing: 1px; font-size: 0.75rem;">
+                Matrix Boundary Filter: Active Compatibility Locks
+            </span>
+        </div>
+    </div>
+
+    <!-- Active Hardware Loop Grid Display -->
+    <div class="catalog-grid">
+        {% for component in components %}
+            <div class="cyber-card">
+                
+                <!-- Graphic Vector Window Showcase -->
+                <div class="card-showcase">
+                    {% if component.image %}
+                        <img src="{{ component.image.url }}" alt="{{ component.name }}">
+                    {% else %}
+                        <img src="{% static 'placeholder.png' %}" alt="Placeholder Image Frame" style="opacity: 0.15;">
+                    {% endif %}
+                </div>
+
+                <!-- Descriptive Information Panel -->
+                <div class="card-body-panel">
+                    <span class="brand-trace">{{ component.brand|default:"Generic Manufacturer" }}</span>
+                    <h5 class="component-title" title="{{ component.name }}">{{ component.name }}</h5>
+
+                    <!-- DYNAMIC QUICK-SPEC MINI MATRIX TERMINAL -->
+                    <div class="mini-specs-grid">
+                        {% if component.category == 'CPU' and component.cpu_spec %}
+                            <div class="spec-line"><span>SOCK:</span> {{ component.cpu_spec.socket.name }}</div>
+                            <div class="spec-line"><span>LOAD:</span> {{ component.cpu_spec.tdp_watts }}W</div>
+                        
+                        {% elif component.category == 'GPU' and component.gpu_spec %}
+                            <div class="spec-line"><span>VRAM:</span> {{ component.gpu_spec.vram_gb }}GB</div>
+                            <div class="spec-line"><span>TDP:</span> {{ component.gpu_spec.tdp_watts }}W</div>
+                            <div class="spec-line" style="grid-column: span 2;"><span>LEN:</span> {{ component.gpu_spec.length_mm }}mm / Max clearance</div>
+                        
+                        {% elif component.category == 'Motherboard' and component.motherboard_spec %}
+                            <div class="spec-line"><span>SOCK:</span> {{ component.motherboard_spec.socket.name }}</div>
+                            <div class="spec-line"><span>SIZE:</span> {{ component.motherboard_spec.form_factor }}</div>
+                            <div class="spec-line" style="grid-column: span 2;"><span>DIMM:</span> {{ component.motherboard_spec.memory_generation.name }} Standard</div>
+                        
+                        {% elif component.category == 'RAM' and component.ram_spec %}
+                            <div class="spec-line"><span>GEN:</span> {{ component.ram_spec.generation.name }}</div>
+                            <div class="spec-line"><span>FREQ:</span> {{ component.ram_spec.speed_mhz }}MHz</div>
+                        
+                        {% elif component.category == 'PSU' and component.psu_spec %}
+                            <div class="spec-line"><span>CAP:</span> {{ component.psu_spec.wattage }}W</div>
+                            <div class="spec-line"><span>EFF:</span> {{ component.psu_spec.efficiency }}</div>
+                        
+                        {% elif component.category == 'Case' and component.case_spec %}
+                            <div class="spec-line"><span>LIMIT:</span> {{ component.case_spec.max_form_factor }}</div>
+                            <div class="spec-line"><span>BAY:</span> {{ component.case_spec.max_gpu_length_mm }}mm</div>
+                        
+                        {% elif component.category == 'Storage' and component.storage_spec %}
+                            <div class="spec-line"><span>BUS:</span> {{ component.storage_spec.drive_type }}</div>
+                            <div class="spec-line"><span>CAP:</span> {{ component.storage_spec.capacity_gb }}GB</div>
+                        {% else %}
+                            <div class="spec-line" style="grid-column: span 2;"><span>CLASS:</span> Standard Module Component</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Footer Action Interface Blocks -->
+                    <div class="card-footer-panel">
+                        <div>
+                            <div class="price-matrix">
+                                <sm>₹</sm>{% if component.lowest_price %}{{ component.lowest_price }}{% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            {% if component.lowest_price %}
+                                <a href="{% url 'install_part' build_id component.id %}" class="btn-mount">Mount Component</a>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-secondary rounded-3 text-uppercase fw-bold" style="font-size: 0.7rem;" disabled>Out of Stock</button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        {% empty %}
+            <!-- System Empty Trace Drop State -->
+            <div class="col-12 text-center py-5 rounded-4" style="background: var(--bg-panel); border: 1px dashed rgba(255,255,255,0.1); grid-column: span 3;">
+                <i class="bi bi-shield-slash display-4 text-muted mb-3" style="opacity: 0.4;"></i>
+                <h5 class="text-white fw-bold">Compatibility Boundary Intercept</h5>
+                <p class="text-muted small px-4 mx-auto" style="max-width: 500px;">
+                    No hardware modules inside the <span class="text-info">"{{ category }}"</span> category match the engineering constraints of the items already installed in your current blueprint workspace configuration profile.
+                </p>
+                <a href="{% url 'builder_dashboard' build_id %}" class="btn btn-sm btn-outline-info fw-bold mt-2 px-4 py-2">Return & Alter Core Architecture</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

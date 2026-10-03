@@ -1,0 +1,381 @@
+{% extends "Vendors_base.html" %}
+
+{% block title %}Store Analytics | PC Builder{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-panel: #0d1117;
+        --border-color: rgba(255, 255, 255, 0.08);
+        --text-muted: #8b949e;
+        --accent-cyan: #00c6ff;
+        --accent-purple: #b873f0;
+    }
+
+    body { background-color: #050608; color: #e6edf3; }
+
+    .analytics-card {
+        background-color: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 24px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+    }
+
+    .analytics-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+    }
+
+    .metric-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+
+    .metric-trend {
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .trend-up { color: #3fb950; }
+    .trend-down { color: #f85149; }
+
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .icon-cyan { background: rgba(0, 198, 255, 0.1); color: var(--accent-cyan); }
+    .icon-purple { background: rgba(184, 115, 240, 0.1); color: var(--accent-purple); }
+    .icon-green { background: rgba(63, 185, 80, 0.1); color: #3fb950; }
+    .icon-orange { background: rgba(210, 153, 34, 0.1); color: #d29922; }
+
+    /* Top Selling Progress Bars */
+    .sales-track {
+        background: rgba(255,255,255,0.05);
+        border-radius: 50px;
+        height: 8px;
+        width: 100%;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    .sales-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+        border-radius: 50px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1200px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+        <div>
+            <h3 class="fw-bold mb-0">Store <span style="color: var(--accent-cyan);">Analytics</span></h3>
+            <p class="text-muted small mb-0 mt-1">Track your revenue, sales, and top-performing hardware.</p>
+        </div>
+        <div>
+            <button onclick="exportReportCSV()" class="btn btn-info btn-sm ms-2 fw-bold text-dark">
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i> Export Report
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="analytics-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="icon-box icon-cyan"><i class="bi bi-currency-rupee"></i></div>
+                    <span class="badge bg-dark border border-secondary text-light">30 Days</span>
+                </div>
+                <div class="metric-title">Monthly Revenue</div>
+                <div class="metric-value">₹{{ monthly_revenue|default:"0" }}</div>
+                <div class="metric-trend trend-up"><i class="bi bi-arrow-up-right"></i> Active Earnings</div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="analytics-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="icon-box icon-purple"><i class="bi bi-box-seam"></i></div>
+                </div>
+                <div class="metric-title">Orders Completed</div>
+                <div class="metric-value">{{ total_orders|default:"0" }}</div>
+                <div class="metric-trend text-muted"><i class="bi bi-activity"></i> Last 30 Days</div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="analytics-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="icon-box icon-green"><i class="bi bi-cart-check"></i></div>
+                </div>
+                <div class="metric-title">Total Units Sold</div>
+                <div class="metric-value">{{ total_units|default:"0" }}</div>
+                <div class="metric-trend text-muted"><i class="bi bi-activity"></i> Last 30 Days</div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="analytics-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="icon-box icon-orange"><i class="bi bi-fire"></i></div>
+                </div>
+                <div class="metric-title">Top Product</div>
+                <div class="metric-value fs-4 mt-2 text-truncate" title="{{ best_seller.inventory_item__component__name|default:'No Sales' }}">
+                    {{ best_seller.inventory_item__component__name|default:"Awaiting Data" }}
+                </div>
+                <div class="metric-trend text-muted mt-1"><i class="bi bi-trophy me-1"></i> Bestseller</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="analytics-card">
+                <h6 class="fw-bold mb-4">Revenue Overview</h6>
+                <div style="height: 300px; width: 100%;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="analytics-card">
+                <h6 class="fw-bold mb-4">Sales by Category</h6>
+                <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="analytics-card">
+                <h6 class="fw-bold mb-4"><i class="bi bi-stars text-info me-2"></i>Top Moving Inventory</h6>
+                
+                <div class="table-responsive">
+                    <table class="table table-dark table-borderless align-middle mb-0">
+                        <thead class="text-muted small" style="border-bottom: 1px solid var(--border-color);">
+                            <tr>
+                                <th class="pb-3">Component Name</th>
+                                <th class="pb-3 text-center">Units Sold</th>
+                                <th class="pb-3 w-25">Performance Tracker</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in top_selling %}
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                                <td class="py-3 fw-bold">{{ item.inventory_item__component__name }}</td>
+                                <td class="py-3 text-center h5 mb-0 text-info">{{ item.total_sold }}</td>
+                                <td class="py-3">
+                                    <div class="sales-track">
+                                        <div class="sales-fill" style="width: {% widthratio item.total_sold 50 100 %}%; max-width: 100%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-5">
+                                    <i class="bi bi-bar-chart text-secondary display-4 mb-3 d-block"></i>
+                                    Not enough sales data to rank items yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // --- 0. LOAD DYNAMIC DATA FROM DJANGO ---
+        const rawRevLabels = {{ rev_labels|safe }};
+        const rawRevData = {{ rev_data|safe }};
+        const rawCatLabels = {{ cat_labels|safe }};
+        const rawCatData = {{ cat_data|safe }};
+
+        const finalRevLabels = rawRevLabels.length > 0 ? rawRevLabels : ['No Data'];
+        const finalRevData = rawRevData.length > 0 ? rawRevData : [0];
+        
+        const finalCatLabels = rawCatLabels.length > 0 ? rawCatLabels : ['No Sales Yet'];
+        const finalCatData = rawCatData.length > 0 ? rawCatData : [1]; 
+        const catColors = rawCatData.length > 0 
+            ? ['#00c6ff', '#b873f0', '#3fb950', '#d29922', '#f85149', '#8b949e'] 
+            : ['#30363d']; 
+
+        // --- 1. REVENUE LINE CHART (DYNAMIC) ---
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        let gradientFill = revCtx.createLinearGradient(0, 0, 0, 300);
+        gradientFill.addColorStop(0, 'rgba(0, 198, 255, 0.4)');
+        gradientFill.addColorStop(1, 'rgba(0, 198, 255, 0.0)');
+
+        new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: finalRevLabels,
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: finalRevData,
+                    borderColor: '#00c6ff',
+                    backgroundColor: gradientFill,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#00c6ff',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4 
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(13, 17, 23, 0.9)',
+                        titleColor: '#8b949e',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Revenue: ₹' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                        ticks: { color: '#8b949e', callback: function(value) { return '₹' + value/1000 + 'k'; } }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { color: '#8b949e' }
+                    }
+                }
+            }
+        });
+
+        // --- 2. CATEGORY DOUGHNUT CHART (DYNAMIC) ---
+        const catCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: finalCatLabels,
+                datasets: [{
+                    data: finalCatData,
+                    backgroundColor: catColors,
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%', 
+                plugins: {
+                    legend: { 
+                        display: true, 
+                        position: 'bottom', 
+                        labels: {
+                            color: '#8b949e',
+                            padding: 15,
+                            usePointStyle: true, 
+                            pointStyle: 'circle',
+                            font: { size: 11, family: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(13, 17, 23, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.label + ': ' + context.parsed + ' Units Sold';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    // --- 3. DETAILED EXPORT FUNCTION ---
+    function exportReportCSV() {
+        const data = {{ export_data|safe }};
+        
+        if (data.length === 0) {
+            alert("No sales data available to export.");
+            return;
+        }
+
+        let csvContent = "Order ID,Component Name,Category,Price (INR),Quantity,Total Amount (INR),Date/Time\n";
+        
+        data.forEach(item => {
+            let total = (item.price * item.qty).toFixed(2);
+            let row = [
+                item.order_id,
+                `"${item.component}"`,
+                item.category,
+                item.price,
+                item.qty,
+                total,
+                item.date
+            ].join(",");
+            
+            csvContent += row + "\n";
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        
+        const today = new Date().toISOString().split('T')[0];
+        link.setAttribute("href", url);
+        link.setAttribute("download", `PC_Builder_Sales_Report_${today}.csv`);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+{% endblock %}

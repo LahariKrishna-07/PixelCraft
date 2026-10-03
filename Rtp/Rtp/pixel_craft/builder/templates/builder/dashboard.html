@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ build.name }} | Blueprint Cockpit{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-main: #060709;
+        --bg-card: #0d1015;
+        --bg-panel: #13171e;
+        --accent-cyan: #00c6ff;
+        --accent-blue: #0072ff;
+        --text-main: #ffffff;
+        --text-muted: #8892b0;
+        --border-subtle: rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+        background-color: var(--bg-main) !important;
+        color: var(--text-main);
+    }
+
+    /* System Cockpit Header Panel */
+    .cockpit-header {
+        background: radial-gradient(ellipse at right, rgba(0, 198, 255, 0.08) 0%, rgba(19, 23, 30, 0.6) 70%);
+        border: 1px solid var(--border-subtle);
+        backdrop-filter: blur(10px);
+    }
+
+    /* Modular Layout Slots */
+    .slot-row {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+    }
+
+    .slot-row::after {
+        content: '';
+        position: absolute;
+        left: 0; top: 20%; bottom: 20%;
+        width: 3px;
+        background: var(--accent-cyan);
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .slot-row:hover {
+        border-color: rgba(0, 198, 255, 0.2);
+        background: #11141c;
+        transform: translateX(4px);
+    }
+
+    .slot-row:hover::after {
+        opacity: 1;
+        box-shadow: 0 0 10px var(--accent-cyan);
+    }
+
+    /* Embedded Hardware Asset Window */
+    .asset-frame {
+        width: 54px;
+        height: 54px;
+        background: #060709;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .asset-frame img {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+    }
+
+    /* Diagnostics Monitor Sidebar */
+    .diagnostics-panel {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-subtle);
+        position: sticky;
+        top: 100px;
+    }
+
+    .diagnostic-terminal {
+        background: #090b0f;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.8rem;
+    }
+
+    /* Action Links */
+    .btn-cyber-outline {
+        border: 1px solid rgba(0, 198, 255, 0.3);
+        color: var(--accent-cyan);
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        transition: 0.3s;
+        text-transform: uppercase;
+        text-decoration: none;
+    }
+
+    .btn-cyber-outline:hover {
+        background: var(--accent-cyan);
+        color: #000;
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+    }
+
+    .btn-action-deploy {
+        background: linear-gradient(45deg, var(--accent-cyan), var(--accent-blue));
+        color: #000;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        border: none;
+        transition: 0.3s;
+    }
+
+    .btn-action-deploy:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 198, 255, 0.4);
+        color: #000;
+    }
+
+    .ai-telemetry-link {
+        transition: 0.3s;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        border: 1px dashed rgba(0, 198, 255, 0.2);
+        background: rgba(0, 198, 255, 0.02);
+    }
+
+    .ai-telemetry-link:hover {
+        color: #fff !important;
+        border-color: var(--accent-cyan);
+        background: rgba(0, 198, 255, 0.08);
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.15);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <!-- Toast Message Node Stream -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-secondary" style="background: var(--bg-panel); color: #fff;" role="alert">
+                    <i class="bi bi-info-circle-fill text-info me-2"></i>{{ message }}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main System Configuration Frame Header -->
+    <div class="cockpit-header p-4 rounded-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="w-100" style="max-width: 550px;">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                
+                <!-- Display State Container Node -->
+                <div id="name-display-node" class="d-flex align-items-center gap-2">
+                    <h3 class="fw-bold text-white mb-0" id="current-build-name">{{ build.name }}</h3>
+                    <button type="button" class="btn btn-sm text-info border-0 p-1 bg-transparent" onclick="toggleRenameInterface(true)" title="Modify Configuration Label">
+                        <i class="bi bi-pencil-square fs-5"></i>
+                    </button>
+                </div>
+
+                <!-- Hidden Input Interface Form Node -->
+                <form id="name-edit-node" method="POST" action="{% url 'rename_build' build.id %}" class="m-0 flex-grow-1" style="display: none !important;">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" name="new_name" class="form-control form-control-sm text-white fw-bold" style="background: #060709; border: 1px solid var(--accent-cyan);" value="{{ build.name }}" required autocomplete="off">
+                        <button type="submit" class="btn btn-sm btn-info text-dark fw-bold px-3"><i class="bi bi-check-lg"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="toggleRenameInterface(false)"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </form>
+
+                <a href="{% url 'create_new_rig' %}" class="btn btn-sm btn-outline-info fw-bold py-1 px-3 border border-info rounded-3" style="font-size: 0.7rem; text-decoration: none;">
+                    <i class="bi bi-plus-circle me-1"></i> Start New Build Slate
+                </a>
+            </div>
+            <p class="text-muted small mb-0 mt-2"><i class="bi bi-terminal me-2 text-info"></i>Architecture Matrix Core Linkage: #PC-00{{ build.id }}</p>
+        </div>
+        <div class="text-md-end">
+            <span class="text-muted d-block small text-uppercase fw-bold" style="letter-spacing: 1px; font-size: 0.7rem;">Combined Build Value</span>
+            <h2 class="fw-bold text-info m-0" style="font-size: 2.2rem;"><span style="font-size: 1.4rem; font-weight: 500;">₹</span>{{ build.total_build_price }}</h2>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Architecture Blueprint Configuration Lane -->
+        <div class="col-lg-8">
+            {% for slot in build_slots %}
+                <div class="slot-row d-flex align-items-center justify-content-between p-3 mb-3">
+                    
+                    <!-- Left Slot Signature Context Information -->
+                    <div class="d-flex align-items-center gap-3 overflow-hidden">
+                        <div class="asset-frame">
+                            {% if slot.image %}
+                                <img src="{{ slot.image.url }}" alt="Hardware Module Blueprint Visual Reference">
+                            {% else %}
+                                <i class="bi bi-layers text-muted fs-5" style="opacity: 0.25;"></i>
+                            {% endif %}
+                        </div>
+                        <div class="overflow-hidden">
+                            <span class="d-block text-info fw-bold text-uppercase" style="font-size:0.65rem; letter-spacing: 0.5px;">{{ slot.category }}</span>
+                            <h6 class="text-white fw-semibold m-0 text-truncate" style="font-size:0.95rem;" title="{{ slot.name }}">{{ slot.name }}</h6>
+                        </div>
+                    </div>
+
+                    <!-- Right Slot Core Event Controller Options -->
+                    <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                        {% if slot.is_filled %}
+                            <span class="text-white fw-bold" style="font-size: 1.05rem;">₹{{ slot.price }}</span>
+                            <a href="{% url 'remove_part' slot.item_id %}" class="btn btn-sm btn-outline-danger border-0 p-2" title="Uninstall Component Module">
+                                <i class="bi bi-trash3-fill fs-6"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'select_part' build.id slot.category %}" class="btn btn-sm btn-cyber-outline px-3 py-2 rounded-3">
+                                Connect Component
+                            </a>
+                        {% endif %}
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Right Sidebar Diagnostics Framework HUD -->
+        <div class="col-lg-4">
+            <div class="diagnostics-panel p-4 rounded-4">
+                <h6 class="fw-bold text-white mb-3 text-uppercase d-flex align-items-center" style="font-size:0.8rem; letter-spacing:1px;">
+                    <i class="bi bi-heart-pulse-fill text-info me-2 fs-5"></i>Hardware Diagnostics Console
+                </h6>
+                
+                <!-- Internal System Load Analysis Row -->
+                <div class="diagnostic-terminal p-3 mb-3">
+                    <div class="text-muted mb-1">// CALCULATED ELECTRICAL ENERGY TOPOLOGY</div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="fs-3 fw-bold text-white">{{ build.total_estimated_wattage }}W</span>
+                        <span class="text-muted small">Estimated Continuous Draw Load</span>
+                    </div>
+                    
+                    {% if not build.is_psu_sufficient %}
+                        <div class="mt-3 text-danger border-top border-secondary pt-2" style="font-size: 0.75rem; line-height: 1.5;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> [CRITICAL_OVERHEAD]: Configuration trace load exceeds system boundary limits. Upgrade the PSU deployment matrix node.
+                        </div>
+                    {% else %}
+                        <div class="mt-3 text-success border-top border-secondary pt-2" style="font-size: 0.75rem; line-height: 1.5;">
+                            <i class="bi bi-check-circle-fill me-1"></i> [STATUS_OK]: Electrical configurations reporting stable. Headroom parameters verified clear.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Live Smart AI Telemetry Connection Bridge Node Link -->
+                <div class="mb-4">
+                    <a href="{% url 'chat_bot' %}?build_id={{ build.id }}" class="ai-telemetry-link text-decoration-none text-info font-monospace rounded-3 p-3 w-100 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-cpu text-info animate-pulse"></i> // Run AI Hardware Diagnostics
+                    </a>
+                </div>
+
+                <!-- Complete Blueprint Transmission Form Interlock -->
+                <form method="POST" action="{% url 'add_build_to_cart' build.id %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-action-deploy w-100 py-3 rounded-3" {% if build.total_build_price == 0 %}disabled{% endif %}>
+                        Deploy Architecture to Cart
+                    </button>
+                    {% if build.total_build_price == 0 %}
+                        <small class="text-muted d-block text-center mt-2" style="font-size: 0.7rem;">// Add component structures to authorize delivery package routing.</small>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleRenameInterface(showEditMode) {
+        const displayNode = document.getElementById('name-display-node');
+        const editNode = document.getElementById('name-edit-node');
+        
+        if (showEditMode) {
+            displayNode.setAttribute('style', 'display: none !important;');
+            editNode.setAttribute('style', 'display: flex !important;');
+            editNode.querySelector('input').focus();
+        } else {
+            displayNode.setAttribute('style', 'display: flex !important;');
+            editNode.setAttribute('style', 'display: none !important;');
+        }
+    }
+</script>
+{% endblock %}

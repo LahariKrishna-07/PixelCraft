@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+/* BACKGROUND */
+.login-bg {
+    min-height: 90vh;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* GLASS CARD */
+.login-card {
+    width: 420px;
+    padding: 30px;
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    color: white;
+    animation: fadeIn 0.8s ease;
+}
+
+/* TITLE */
+.login-card h3 {
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* INPUT FIELDS */
+.form-floating input {
+    background: rgba(255,255,255,0.1) !important;
+    border: 1px solid transparent; 
+    color: white !important;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.form-floating input:focus {
+    box-shadow: 0 0 10px #0d6efd;
+    background: rgba(255,255,255,0.15) !important;
+    border-color: transparent;
+}
+
+/* FIX 1: BROWSER AUTOFILL BACKGROUND */
+.form-floating input:-webkit-autofill,
+.form-floating input:-webkit-autofill:hover, 
+.form-floating input:-webkit-autofill:focus, 
+.form-floating input:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: white !important;
+    font-family: inherit;
+}
+
+/* FIX 2: FLOATING LABEL WHITE BOX */
+.form-floating label::after {
+    background: transparent !important;
+}
+
+.form-floating input:focus ~ label {
+    color: #00c6ff !important;
+}
+
+/* LABEL BASE COLOR */
+.form-floating label {
+    color: #ccc;
+}
+
+/* VENDOR TOGGLE SWITCH STYLING */
+.form-switch .form-check-input {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    height: 1.5rem;
+    width: 3rem;
+    cursor: pointer;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #00c6ff;
+}
+
+.form-switch .form-check-label {
+    cursor: pointer;
+    color: #ccc;
+    font-size: 0.95rem;
+    margin-left: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+/* BUTTON */
+.login-btn {
+    background: linear-gradient(45deg, #0d6efd, #00c6ff);
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: white;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(13,110,253,0.5);
+    color: white;
+}
+
+/* LINKS */
+.login-card a {
+    color: #00c6ff;
+    transition: 0.3s;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-card a:hover {
+    color: white;
+}
+
+/* 🔥 CLEAN VALIDATION STYLE */
+.form-floating input.is-invalid {
+    border-color: #ff4d4d !important;
+    box-shadow: 0 0 8px rgba(255, 77, 77, 0.4) !important;
+}
+
+.form-floating input.is-valid {
+    border-color: #00e676 !important;
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.4) !important;
+}
+
+/* Remove Bootstrap validation icons */
+.form-control.is-invalid,
+.form-control.is-valid {
+    background-image: none !important;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+</style>
+
+<div class="login-bg">
+
+    <div class="login-card">
+
+        <h3 class="text-center mb-4">Create Account ✨</h3>
+
+        <form method="POST" action="{% url 'register' %}" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-floating mb-3">
+                {{ form.username }}
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                {% for error in form.username.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-floating mb-3">
+                {{ form.email }}
+                <label for="{{ form.email.id_for_label }}">Email</label>
+                {% for error in form.email.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-floating mb-3">
+                {{ form.password1 }}
+                <label for="{{ form.password1.id_for_label }}">Password</label>
+                <div class="invalid-feedback d-block text-danger small mt-1">
+                    {% for error in form.password1.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-floating mb-3">
+                {{ form.password2 }}
+                <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                <div class="invalid-feedback d-block text-danger small mt-1">
+                    {% for error in form.password2.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-check form-switch mb-4 d-flex align-items-center">
+                {{ form.is_vendor }}
+                <label class="form-check-label" for="{{ form.is_vendor.id_for_label }}">
+                    Register as a Vendor (Create Shop)
+                </label>
+            </div>
+
+            <button type="submit" class="btn login-btn w-100 mt-2 py-2">
+                Register
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <small>
+                Already have an account?
+                <a href="{% url 'Login' %}">Login</a>
+            </small>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+document.querySelectorAll("input").forEach(input => {
+    // Exclude hidden tokens and checkboxes/radios from the text validation logic
+    if (input.type !== 'hidden' && input.type !== 'checkbox' && input.type !== 'radio') {
+        input.addEventListener("input", function () {
+            if (this.value.length > 2) {
+                this.classList.add("is-valid");
+                this.classList.remove("is-invalid");
+            } else {
+                this.classList.add("is-invalid");
+                this.classList.remove("is-valid");
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

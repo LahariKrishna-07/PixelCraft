@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI Hardware Assistant | PC Builder{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 1. PAGE BACKGROUND (Adds depth behind the glass) */
+    body {
+        background-color: #050505 !important;
+        color: #ffffff;
+        background-image: radial-gradient(circle at 50% 0%, #0d2b3e 0%, #050505 60%);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    /* 2. MAIN CHAT WRAPPER (Frosted Glass) */
+    .chat-wrapper {
+        max-width: 1000px;
+        margin: 30px auto;
+        height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+        background: rgba(15, 20, 25, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+        overflow: hidden;
+    }
+
+    /* 3. HEADER */
+    .chat-header {
+        padding: 20px 30px;
+        background: rgba(0, 0, 0, 0.4);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(10px);
+        z-index: 10;
+    }
+
+    .bot-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .bot-avatar {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #1a1f24, #0a0c0f);
+        border: 1px solid #00c6ff;
+        color: #00c6ff;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        background: #00e676;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 10px #00e676;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(0, 230, 118, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+    }
+
+    /* 4. CHAT BODY (With Tech Blueprint Grid) */
+    .chat-body {
+        flex-grow: 1;
+        padding: 30px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        scrollbar-width: thin;
+        scrollbar-color: #00c6ff transparent;
+        /* Subtle dot grid pattern */
+        background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+
+    .chat-body::-webkit-scrollbar { width: 6px; }
+    .chat-body::-webkit-scrollbar-thumb { background: #00c6ff; border-radius: 10px; }
+
+    /* 5. MESSAGE BUBBLES */
+    .message {
+        max-width: 75%;
+        padding: 16px 24px;
+        font-size: 1rem;
+        line-height: 1.6;
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        position: relative;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* User Message: Glowing Blue Gradient */
+    .msg-user {
+        background: linear-gradient(135deg, #0072ff, #00c6ff);
+        color: #ffffff;
+        align-self: flex-end;
+        border-radius: 20px 20px 4px 20px;
+        font-weight: 500;
+        box-shadow: 0 10px 25px rgba(0, 198, 255, 0.25);
+    }
+
+    /* Bot Message: Sleek Dark Glass */
+    .msg-bot {
+        background: rgba(255, 255, 255, 0.03);
+        color: #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        align-self: flex-start;
+        border-radius: 20px 20px 20px 4px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .msg-bot strong {
+        color: #00c6ff;
+        font-weight: 700;
+    }
+
+    /* 6. TYPING INDICATOR */
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        padding: 16px 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px 20px 20px 4px;
+        align-self: flex-start;
+        width: fit-content;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background: #555;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); background: #555; }
+        40% { transform: scale(1); background: #00c6ff; box-shadow: 0 0 10px #00c6ff; }
+    }
+
+    /* 7. FOOTER & INPUT AREA */
+    .chat-footer {
+        padding: 20px 30px 30px;
+        background: transparent;
+        position: relative;
+    }
+
+    .quick-prompts {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .quick-prompts::-webkit-scrollbar { display: none; }
+
+    .prompt-chip {
+        background: rgba(0, 198, 255, 0.05);
+        border: 1px solid rgba(0, 198, 255, 0.2);
+        color: #00c6ff;
+        padding: 8px 18px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .prompt-chip:hover {
+        background: #00c6ff;
+        color: #000;
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Floating Input Bar */
+    .input-wrapper {
+        display: flex;
+        background: rgba(10, 12, 15, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50px;
+        padding: 8px 8px 8px 24px;
+        transition: 0.3s;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        backdrop-filter: blur(10px);
+    }
+
+    .input-wrapper:focus-within {
+        border-color: #00c6ff;
+        box-shadow: 0 10px 30px rgba(0, 198, 255, 0.15);
+    }
+
+    .chat-input {
+        flex-grow: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .chat-input::placeholder { color: #666; }
+    .chat-input:focus { outline: none; }
+
+    .btn-send {
+        background: #00c6ff;
+        color: #000;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3);
+    }
+
+    .btn-send:hover {
+        background: #fff;
+        transform: scale(1.08) rotate(5deg);
+        box-shadow: 0 8px 25px rgba(0, 198, 255, 0.5);
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="chat-wrapper">
+        
+        <div class="chat-header">
+            <div class="bot-info">
+                <div class="bot-avatar"><i class="bi bi-cpu-fill"></i></div>
+                <div>
+                    <h5 class="mb-1 fw-bold" style="letter-spacing: 1px; font-size: 1.1rem;">BuildBot AI</h5>
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #a0aec0;">
+                        <span class="status-dot"></span> System Online
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-outline-light rounded-circle" style="width: 40px; height: 40px; border-color: rgba(255,255,255,0.1);" title="Clear Chat" onclick="clearChat()">
+                <i class="bi bi-trash3 text-muted"></i>
+            </button>
+        </div>
+
+        <div class="chat-body" id="chatBody">
+            <div class="message msg-bot">
+                Hello! I am your personal AI hardware technician. I can help you check compatibility, recommend parts for specific budgets, or explain technical specs. <br><br> What kind of rig are we building today?
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            
+            <div class="quick-prompts">
+                <button class="prompt-chip" onclick="sendQuickPrompt('Suggest a $1500 gaming build')">Suggest a $1500 build</button>
+                <button class="prompt-chip" onclick="sendQuickPrompt('What is a CPU Bottleneck?')">What is a CPU Bottleneck?</button>
+                <button class="prompt-chip" onclick="sendQuickPrompt('DDR4 vs DDR5 RAM?')">DDR4 vs DDR5 RAM?</button>
+                <button class="prompt-chip" onclick="sendQuickPrompt('Will a 4090 fit in my case?')">Will a 4090 fit?</button>
+            </div>
+
+            <div class="input-wrapper">
+                <input type="text" id="userInput" class="chat-input" placeholder="Initiate query or type a command..." autocomplete="off" onkeypress="handleEnter(event)">
+                <button class="btn-send" onclick="sendMessage()">
+                    <i class="bi bi-send-fill" style="margin-left: -2px;"></i>
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const chatBody = document.getElementById('chatBody');
+    const userInput = document.getElementById('userInput');
+    const typingIndicator = document.getElementById('typingIndicator');
+
+    function handleEnter(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function sendQuickPrompt(text) {
+        userInput.value = text;
+        sendMessage();
+    }
+
+    function sendMessage() {
+        const text = userInput.value.trim();
+        if (text === '') return;
+
+        // 1. Add User Message
+        appendMessage(text, 'msg-user');
+        userInput.value = '';
+
+        // 2. Show Typing Indicator
+        typingIndicator.style.display = 'flex';
+        chatBody.appendChild(typingIndicator); // Move indicator to bottom
+        scrollToBottom();
+
+        // 3. Simulate Bot Response
+        setTimeout(() => {
+            typingIndicator.style.display = 'none';
+            simulateBotReply(text);
+        }, 1200);
+    }
+
+    function appendMessage(text, className) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${className}`;
+        msgDiv.innerHTML = text;
+        
+        chatBody.insertBefore(msgDiv, typingIndicator);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function clearChat() {
+        const welcomeMessage = chatBody.children[0];
+        chatBody.innerHTML = '';
+        chatBody.appendChild(welcomeMessage);
+        chatBody.appendChild(typingIndicator);
+    }
+
+    // --- FAKE BACKEND LOGIC ---
+    function simulateBotReply(userText) {
+        let reply = "Processing query... Please connect my neural net to your Django backend so I can pull real hardware data.";
+        
+        const lowerText = userText.toLowerCase();
+        
+        if (lowerText.includes('1500') || lowerText.includes('budget')) {
+            reply = "For a <strong>$1500 gaming rig</strong>, I recommend pairing the <strong>AMD Ryzen 7 7800X3D</strong> with an <strong>RTX 4070 Super</strong>. This combo dominates 1440p gaming. Make sure you grab 32GB of DDR5-6000 RAM to maximize the CPU's potential.";
+        } else if (lowerText.includes('bottleneck')) {
+            reply = "A <strong>bottleneck</strong> happens when one component limits the performance of another. For example, if you pair a hyper-fast RTX 4090 with a 10-year-old CPU, the graphics card will constantly be waiting for the CPU to catch up, wasting its potential.";
+        } else if (lowerText.includes('ddr4 vs ddr5')) {
+            reply = "<strong>DDR5</strong> is the newer standard. It offers significantly higher bandwidth (starting at 4800MHz compared to DDR4's 3200MHz) and lower power consumption. If you are building a new system on AM5 or Intel 13th/14th Gen, DDR5 is the way to go for future-proofing.";
+        }
+
+        appendMessage(reply, 'msg-bot');
+    }
+</script>
+{% endblock %}

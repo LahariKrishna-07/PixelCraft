@@ -1,0 +1,336 @@
+{% extends 'Vendors_base.html' %}
+{% load static %}
+
+{% block title %}Shop Profile | Pixel Craft{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Page Background Setup */
+    body {
+        background: radial-gradient(circle at 50% 0%, #111827 0%, #000000 100%);
+    }
+
+    /* Hero Banner Profile Card */
+    .profile-hero {
+        position: relative;
+        background: rgba(20, 25, 35, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        margin-bottom: 2rem;
+    }
+
+    /* Abstract Cover Photo using CSS Gradients */
+    .hero-cover {
+        height: 200px;
+        width: 100%;
+        background: linear-gradient(120deg, #020617 0%, #0f172a 50%, #082f49 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Subtle grid overlay for the tech vibe */
+    .hero-cover::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 30px 30px;
+    }
+
+    /* Avatar Positioning */
+    .hero-avatar-wrapper {
+        position: relative;
+        margin-top: -80px;
+        padding-left: 3rem;
+        display: flex;
+        align-items: flex-end;
+        gap: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .hero-avatar {
+        width: 160px;
+        height: 160px;
+        border-radius: 20px; /* Squircle look */
+        padding: 6px;
+        background: linear-gradient(135deg, #0d6efd, #00c6ff);
+        box-shadow: 0 10px 30px rgba(0, 198, 255, 0.3);
+        flex-shrink: 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 14px;
+        background: #0b0b0b;
+    }
+
+    .hero-avatar-fallback {
+        width: 100%;
+        height: 100%;
+        border-radius: 14px;
+        background: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        color: #00c6ff;
+    }
+
+    .hero-info {
+        flex-grow: 1;
+        z-index: 2;
+        padding-bottom: 10px;
+    }
+
+    .shop-title {
+        font-size: 3rem;
+        font-weight: 900;
+        letter-spacing: -1px;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, #fff, #a5b4fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .shop-meta {
+        display: flex;
+        gap: 1.5rem;
+        color: #94a3b8;
+        font-size: 0.95rem;
+        align-items: center;
+    }
+
+    /* Action Button in Hero */
+    .hero-actions {
+        padding-right: 3rem;
+        z-index: 2;
+        padding-bottom: 10px;
+    }
+
+    .btn-glow {
+        background: rgba(0, 198, 255, 0.1);
+        border: 1px solid #00c6ff;
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+
+    .btn-glow:hover {
+        background: #00c6ff;
+        color: #000;
+        box-shadow: 0 0 20px rgba(0, 198, 255, 0.5);
+        transform: translateY(-2px);
+    }
+
+    /* Detail Cards */
+    .detail-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 2rem;
+        height: 100%;
+        transition: 0.3s;
+    }
+
+    .detail-card:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(0, 198, 255, 0.2);
+    }
+
+    .card-header-custom {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(0, 198, 255, 0.1);
+        color: #00c6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-right: 15px;
+    }
+
+    .info-item {
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-label {
+        color: #64748b;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-value {
+        color: #e2e8f0;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    /* Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        backdrop-filter: blur(10px);
+    }
+
+    .badge-verified { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .hero-avatar-wrapper { flex-direction: column; align-items: center; text-align: center; padding-left: 0; margin-top: -60px; }
+        .hero-actions { padding-right: 0; margin-top: 1rem; }
+        .shop-meta { justify-content: center; flex-wrap: wrap; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="profile-hero stagger-1">
+        <div class="hero-cover"></div>
+        
+        <div class="hero-avatar-wrapper">
+            <div class="hero-avatar">
+                {% if vendor.profile_image %}
+                    <img src="{{ vendor.profile_image.url }}" alt="{{ vendor.shop_name }}">
+                {% else %}
+                    <div class="hero-avatar-fallback">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="hero-info">
+                <h1 class="shop-title">{{ vendor.shop_name }}</h1>
+                <div class="shop-meta">
+                    <span><i class="bi bi-geo-alt-fill text-info me-1"></i> {{ vendor.city }}</span>
+                    <span><i class="bi bi-calendar-event-fill text-info me-1"></i> Partner since {{ vendor.created_at|date:"M Y" }}</span>
+                    
+                    {% if vendor.is_verified %}
+                        <span class="status-badge badge-verified"><i class="bi bi-shield-check me-2"></i>Verified Vendor</span>
+                    {% else %}
+                        <span class="status-badge badge-pending"><i class="bi bi-shield-exclamation me-2"></i>Verification Pending</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="hero-actions">
+                <a href="{% url 'vendor_profile_edit' %}" class="btn-glow">
+                    <i class="bi bi-pen me-2"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5 stagger-2">
+            <div class="detail-card">
+                <div class="card-header-custom">
+                    <div class="card-icon"><i class="bi bi-briefcase"></i></div>
+                    <h4 class="mb-0 fw-bold text-white">Business Details</h4>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Store Owner</div>
+                    <div class="info-value d-flex align-items-center">
+                        <i class="bi bi-person-circle text-muted me-2 fs-4"></i>
+                        {{ vendor.owner_name }}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Operating City</div>
+                    <div class="info-value">{{ vendor.city|upper }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Account Status</div>
+                    <div class="info-value">
+                        {% if vendor.is_active %}
+                            <span class="text-success fw-bold d-flex align-items-center">
+                                <span class="spinner-grow spinner-grow-sm text-success me-2" style="width: 10px; height: 10px;"></span> Active & Online
+                            </span>
+                        {% else %}
+                            <span class="text-danger fw-bold d-flex align-items-center">
+                                <i class="bi bi-x-circle-fill me-2"></i> Suspended
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 stagger-3">
+            <div class="detail-card">
+                <div class="card-header-custom">
+                    <div class="card-icon"><i class="bi bi-headset"></i></div>
+                    <h4 class="mb-0 fw-bold text-white">Contact Information</h4>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <div class="info-label"><i class="bi bi-envelope-at"></i> Email Address</div>
+                            <div class="info-value text-info">{{ vendor.email }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <div class="info-label"><i class="bi bi-telephone"></i> Phone Number</div>
+                            <div class="info-value">{{ vendor.phone }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <div class="info-item">
+                            <div class="info-label"><i class="bi bi-building"></i> Full Registered Address</div>
+                            <div class="info-value p-3 rounded-3 mt-2" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">
+                                {{ vendor.address }}<br>
+                                {{ vendor.city }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
